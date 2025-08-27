@@ -42,7 +42,7 @@ export default function DashboardPage() {
                 <span className="text-sm font-medium">{getUserDisplayName()}</span>
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-gray-900 text-white text-sm">
-                    {session?.user?.email?.slice(0, 2).toUpperCase() || "JX"}
+                    {getUserDisplayName().slice(0, 2).toUpperCase() || "JX"}
                   </AvatarFallback>
                 </Avatar>
               </div>
