@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, Check, X, Download, Search } from "lucide-react";
 import { getPendingLawyers, verifyLawyer, rejectLawyer } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
 
 interface Lawyer {
   id: string;
@@ -33,10 +34,11 @@ interface Lawyer {
 
 export default function LawyerVerificationPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
   const [selectAll, setSelectAll] = useState(false);
 
   const fetchLawyers = async () => {
@@ -48,7 +50,11 @@ export default function LawyerVerificationPage() {
       }
     } catch (error) {
       console.error('Error fetching lawyers:', error);
-      toast.error('Failed to fetch lawyers');
+      toast({
+        title: "Error",
+        description: "Failed to fetch lawyers",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -62,12 +68,19 @@ export default function LawyerVerificationPage() {
     try {
       const response = await verifyLawyer(lawyerId);
       if (response.success) {
-        toast.success('Lawyer verified successfully');
+        toast({
+          title: "Success",
+          description: "Lawyer verified successfully",
+        });
         fetchLawyers(); // Refresh the list
       }
     } catch (error) {
       console.error('Error verifying lawyer:', error);
-      toast.error('Failed to verify lawyer');
+      toast({
+        title: "Error",
+        description: "Failed to verify lawyer",
+        variant: "destructive",
+      });
     }
   };
 
@@ -75,12 +88,19 @@ export default function LawyerVerificationPage() {
     try {
       const response = await rejectLawyer(lawyerId, 'Verification rejected by admin');
       if (response.success) {
-        toast.success('Lawyer verification rejected');
+        toast({
+          title: "Success",
+          description: "Lawyer verification rejected",
+        });
         fetchLawyers(); // Refresh the list
       }
     } catch (error) {
       console.error('Error rejecting lawyer:', error);
-      toast.error('Failed to reject lawyer');
+      toast({
+        title: "Error",
+        description: "Failed to reject lawyer",
+        variant: "destructive",
+      });
     }
   };
 
@@ -93,6 +113,34 @@ export default function LawyerVerificationPage() {
     setLawyers(lawyers.map(lawyer => 
       lawyer.id === lawyerId ? { ...lawyer, selected: checked } : lawyer
     ));
+  };
+
+  const handleExport = (format: 'csv' | 'json') => {
+    const filteredLawyers = lawyers.filter(lawyer => {
+      const matchesSearch = searchTerm === "" || 
+        lawyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lawyer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || lawyer.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+
+    // Format data for export by excluding unwanted fields
+    const exportData = formatDataForExport(filteredLawyers, ['profileImage', 'selected']);
+
+    if (format === 'csv') {
+      exportToCSV(exportData, 'lawyer-verification');
+      toast({
+        title: "Success",
+        description: "Lawyer verification data exported to CSV successfully",
+      });
+    } else {
+      exportToJSON(exportData, 'lawyer-verification');
+      toast({
+        title: "Success", 
+        description: "Lawyer verification data exported to JSON successfully",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -175,10 +223,24 @@ export default function LawyerVerificationPage() {
                         </Button>
                       </>
                     )}
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      Export
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center gap-2"
+                        onClick={() => handleExport('csv')}
+                      >
+                        <Download className="h-4 w-4" />
+                        Export CSV
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center gap-2"
+                        onClick={() => handleExport('json')}
+                      >
+                        <Download className="h-4 w-4" />
+                        Export JSON
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

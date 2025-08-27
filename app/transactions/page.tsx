@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard, Calendar, Users, Search, Download } from "lucide-react";
 import { getTransactions } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
 
 interface Transaction {
   _id: string;
@@ -31,6 +32,7 @@ interface TransactionStats {
 }
 
 export default function TransactionsPage() {
+  const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<TransactionStats>({
     totalTokensPurchased: 0,
@@ -92,6 +94,32 @@ export default function TransactionsPage() {
     }
   };
 
+  const handleExport = (format: 'csv' | 'json') => {
+    if (!transactions.length) {
+      toast({
+        title: "No Data",
+        description: "No transactions available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const exportData = formatDataForExport(transactions, ['_id']);
+    const filename = `transactions_${new Date().toISOString().split('T')[0]}`;
+
+    if (format === 'csv') {
+      exportToCSV(exportData, filename);
+    } else {
+      exportToJSON(exportData, filename);
+    }
+
+    toast({
+      title: "Export Successful",
+      description: `Transactions exported as ${format.toUpperCase()}`,
+      variant: "default",
+    });
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -148,10 +176,24 @@ export default function TransactionsPage() {
                     </Select>
                   </div>
                   
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('csv')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export CSV
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('json')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export JSON
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

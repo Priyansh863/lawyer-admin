@@ -90,7 +90,7 @@ export default function LoginForm() {
       <CardHeader className="text-center">
         <h1 className="text-2xl font-bold font-heading">Admin Portal</h1>
         <p className="text-sm text-gray-600 mt-2">
-          This page is for admin login only. Please enter your admin credentials to access the management dashboard.
+          Welcome Joseph! This page is for admin login only. Please enter your admin credentials to access the management dashboard.
         </p>
       </CardHeader>
       <CardContent>

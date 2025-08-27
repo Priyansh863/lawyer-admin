@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Check, X, Download, Search } from "lucide-react";
 import { getContentMonitoring, updateContentStatus } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
 
 interface ContentItem {
   author: any;
@@ -28,6 +29,7 @@ export default function ContentMonitoringPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const { toast } = useToast();
   const fetchContent = async () => {
     try {
       setLoading(true);
@@ -57,12 +59,19 @@ export default function ContentMonitoringPage() {
     try {
       const response = await updateContentStatus(contentId, status, type);
       if (response.success) {
-        toast.success('Content status updated successfully');
+        toast({
+          title: "Success",
+          description: "Content status updated successfully",
+        });
         fetchContent(); // Refresh the list
       }
     } catch (error) {
       console.error('Error updating content status:', error);
-      toast.error('Failed to update content status');
+      toast({
+        title: "Error",
+        description: "Failed to update content status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -87,6 +96,35 @@ export default function ContentMonitoringPage() {
         return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleExport = (format: 'csv' | 'json') => {
+    const filteredContent = content.filter(item => {
+      const matchesSearch = searchTerm === "" || 
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.author_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      const matchesType = typeFilter === "all" || item.type === typeFilter;
+      
+      return matchesSearch && matchesStatus && matchesType;
+    });
+
+    // Format data for export by excluding unwanted fields
+    const exportData = formatDataForExport(filteredContent, ['author']);
+
+    if (format === 'csv') {
+      exportToCSV(exportData, 'content-monitoring');
+      toast({
+        title: "Success",
+        description: "Content data exported to CSV successfully",
+      });
+    } else {
+      exportToJSON(exportData, 'content-monitoring');
+      toast({
+        title: "Success", 
+        description: "Content data exported to JSON successfully",
+      });
     }
   };
 
@@ -144,10 +182,24 @@ export default function ContentMonitoringPage() {
                     </Select>
                   </div>
                   
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('csv')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export CSV
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('json')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export JSON
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

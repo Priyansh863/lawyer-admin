@@ -160,21 +160,6 @@ export function AdminSidebar() {
           )
         })}
       </nav>
-
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start text-left font-normal text-red-600 hover:text-red-700 hover:bg-red-50",
-            collapsed ? "px-2" : "px-3"
-          )}
-          onClick={handleLogout}
-        >
-          <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
-          {!collapsed && <span>Logout</span>}
-        </Button>
-      </div>
     </div>
   )
 }

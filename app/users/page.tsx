@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Edit, Trash2, Download, Check, X } from "lucide-react";
 import { getAllUsers, verifyLawyer, rejectLawyer, exportUsers } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
 
 interface User {
   id: string;
@@ -28,6 +29,7 @@ export default function UsersPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
   const [roleFilter, setRoleFilter] = useState("all");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,11 @@ export default function UsersPage() {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -55,12 +61,19 @@ export default function UsersPage() {
     try {
       const response = await verifyLawyer(userId);
       if (response.success) {
-        toast.success('Lawyer verified successfully');
+        toast({
+          title: "Success",
+          description: "Lawyer verified successfully",
+        });
         fetchUsers(); // Refresh the list
       }
     } catch (error) {
       console.error('Error verifying lawyer:', error);
-      toast.error('Failed to verify lawyer');
+      toast({
+        title: "Error",
+        description: "Failed to verify lawyer",
+        variant: "destructive",
+      });
     }
   };
 
@@ -68,55 +81,48 @@ export default function UsersPage() {
     try {
       const response = await rejectLawyer(userId, 'Verification rejected by admin');
       if (response.success) {
-        toast.success('Lawyer verification rejected');
+        toast({
+          title: "Success",
+          description: "Lawyer verification rejected",
+        });
         fetchUsers(); // Refresh the list
       }
     } catch (error) {
       console.error('Error rejecting lawyer:', error);
-      toast.error('Failed to reject lawyer');
+      toast({
+        title: "Error",
+        description: "Failed to reject lawyer",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await exportUsers(roleFilter);
-      if (response.success) {
-        // Convert to CSV and download
-        const csvContent = convertToCSV(response.data);
-        downloadCSV(csvContent, 'users_export.csv');
-        toast.success('Users data exported successfully');
-      }
-    } catch (error) {
-      console.error('Error exporting users:', error);
-      toast.error('Failed to export users');
-    }
-  };
+  const handleExport = (format: 'csv' | 'json') => {
+    const filteredUsers = users.filter(user => {
+      const matchesSearch = searchTerm === "" || 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      
+      return matchesSearch && matchesStatus && matchesRole;
+    });
 
-  const convertToCSV = (data: any[]) => {
-    if (data.length === 0) return '';
-    
-    const headers = Object.keys(data[0]);
-    const csvRows = [
-      headers.join(','),
-      ...data.map(row => 
-        headers.map(header => `"${row[header] || ''}"`).join(',')
-      )
-    ];
-    
-    return csvRows.join('\n');
-  };
+    // Format data for export by excluding unwanted fields
+    const exportData = formatDataForExport(filteredUsers, ['avatar']);
 
-  const downloadCSV = (csvContent: string, filename: string) => {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', filename);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (format === 'csv') {
+      exportToCSV(exportData, 'users');
+      toast({
+        title: "Success",
+        description: "Users data exported to CSV successfully",
+      });
+    } else {
+      exportToJSON(exportData, 'users');
+      toast({
+        title: "Success", 
+        description: "Users data exported to JSON successfully",
+      });
     }
   };
 
@@ -197,14 +203,24 @@ export default function UsersPage() {
                     </Select>
                   </div>
                   
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center gap-2"
-                    onClick={handleExport}
-                  >
-                    <Download className="h-4 w-4" />
-                    Export
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('csv')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export CSV
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => handleExport('json')}
+                    >
+                      <Download className="h-4 w-4" />
+                      Export JSON
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

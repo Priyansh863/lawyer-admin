@@ -4,11 +4,9 @@ import { AdminSidebar } from "@/components/admin-sidebar"
 import { DashboardStats } from "@/components/dashboard-stats"
 import { UserRolesChart } from "@/components/user-roles-chart"
 import { RecentActivity } from "@/components/recent-activity"
-import { Search, Settings, Bell } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ToastTest } from "@/components/toast-test"
+
+import { AdminHeader } from "@/components/admin-header";
+
 
 export default function DashboardPage() {
   const { data: session } = useSession() as any
@@ -29,26 +27,7 @@ export default function DashboardPage() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">{getUserDisplayName()}</span>
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gray-900 text-white text-sm">
-                    {getUserDisplayName().slice(0, 2).toUpperCase() || "JX"}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
-          </div>
-        </header>
+      <AdminHeader />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
