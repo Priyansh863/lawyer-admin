@@ -17,7 +17,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ScrollText
 } from "lucide-react"
 
 const sidebarItems = [
@@ -45,6 +46,11 @@ const sidebarItems = [
     title: "Content Monitoring",
     href: "/content-monitoring",
     icon: FileText,
+  },
+  {
+    title: "Policies",
+    href: "/policies",
+    icon: ScrollText,
   },
   {
     title: "Settings",
