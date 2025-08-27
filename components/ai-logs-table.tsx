@@ -1,0 +1,169 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { Search, ChevronDown, Download, Eye } from "lucide-react"
+
+export function AiLogsTable() {
+  const [aiLogsData, setAiLogsData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState("All")
+  const [searchTerm, setSearchTerm] = useState("")
+
+  useEffect(() => {
+    const fetchAiLogs = async () => {
+      setLoading(true)
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 700)) // Simulate network delay
+        const res = await fetch("/api/ai-logs") // 🔁 Replace with your real API route
+        const data = await res.json()
+        setAiLogsData(data)
+      } catch (error) {
+        console.error("Failed to fetch AI logs:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAiLogs()
+  }, [])
+
+  const filteredAiLogs = aiLogsData.filter((log) => {
+    const matchesSearch =
+      log.titleDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.generatedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = selectedStatus === "All" || log.status === selectedStatus
+    return matchesSearch && matchesStatus
+  })
+
+  return (
+    <div className="space-y-6" style={{ fontFamily: "Montserrat, sans-serif" }}>
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">AI Logs</h1>
+        <p className="text-gray-600 mt-1">AI Logs list</p>
+      </div>
+
+      {/* Filters and Actions Container */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search by name"
+              className="pl-10 pr-4 py-2 w-full sm:w-80 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center space-x-3 w-full sm:w-auto">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                aria-haspopup="true"
+                aria-expanded={isStatusDropdownOpen}
+              >
+                <span>{selectedStatus}</span>
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </button>
+              {isStatusDropdownOpen && (
+                <div className="absolute z-10 mt-2 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  {["All", "Success", "Failed"].map((statusOption) => (
+                    <button
+                      key={statusOption}
+                      onClick={() => {
+                        setSelectedStatus(statusOption)
+                        setIsStatusDropdownOpen(false)
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {statusOption}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Export</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Logs Table */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Log ID</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title / Description</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Generated By</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                Timestamp
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="p-6 text-center text-gray-500">
+                  Loading AI logs...
+                </td>
+              </tr>
+            ) : filteredAiLogs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="p-6 text-center text-gray-500">
+                  No AI logs found.
+                </td>
+              </tr>
+            ) : (
+              filteredAiLogs.map((log, index) => (
+                <tr key={log.id} className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}>
+                  <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{log.logId}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{log.type}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{log.titleDescription}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{log.generatedBy}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-600 hidden sm:table-cell">{log.timestamp}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        log.status === "Success"
+                          ? "bg-green-100 text-green-800"
+                          : log.status === "Failed"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <button
+                      type="button"
+                      className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
