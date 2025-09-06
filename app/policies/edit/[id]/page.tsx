@@ -17,10 +17,8 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import axiosInstance from '@/lib/axiosInstance';
-import dynamic from 'next/dynamic';
 import { PoliciesSidebar } from '@/components/policies-sidebar';
-
-// Dynamic import for markdown editor to avoid SSR issues
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PolicyFormData {
   title: string;
@@ -31,6 +29,7 @@ interface PolicyFormData {
 }
 
 export default function EditPolicyPage() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<PolicyFormData>({
     title: '',
     slug: '',
@@ -66,8 +65,8 @@ export default function EditPolicyPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to fetch policy details',
+        title: t('pages:policies.edit.fetchErrorTitle'),
+        description: t('pages:policies.edit.fetchErrorDesc'),
         variant: 'destructive',
       });
       router.push('/policies');
@@ -96,8 +95,8 @@ export default function EditPolicyPage() {
     
     if (!formData.title || !formData.slug || !formData.content) {
       toast({
-        title: 'Error',
-        description: 'Please fill in all required fields',
+        title: t('pages:policies.edit.validationErrorTitle'),
+        description: t('pages:policies.edit.validationErrorDesc'),
         variant: 'destructive',
       });
       return;
@@ -108,22 +107,21 @@ export default function EditPolicyPage() {
       const response = await axiosInstance.put(`/policies/${params.id}`, formData);
       if (response.data.success) {
         toast({
-          title: 'Success',
-          description: 'Policy updated successfully',
+          title: t('pages:policies.edit.successTitle'),
+          description: t('pages:policies.edit.successDesc'),
         });
         router.push('/policies');
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.error || 'Failed to update policy',
+        title: t('pages:policies.edit.updateErrorTitle'),
+        description: error.response?.data?.error || t('pages:policies.edit.updateErrorDesc'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
   };
-
 
   if (initialLoading) {
     return (
@@ -133,7 +131,7 @@ export default function EditPolicyPage() {
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
         />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg">Loading policy...</div>
+          <div className="text-lg">{t('pages:policies.edit.loading')}</div>
         </div>
       </div>
     );
@@ -156,111 +154,125 @@ export default function EditPolicyPage() {
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                {t('pages:policies.edit.backButton')}
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">Edit Legal Page</h1>
+                <h1 className="text-3xl font-bold">{t('pages:policies.edit.title')}</h1>
                 <p className="text-muted-foreground">
-                  Update the legal page content and settings.
+                  {t('pages:policies.edit.description')}
                 </p>
               </div>
             </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Page Content</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
-                    placeholder="e.g., Privacy Policy"
-                    required
-                  />
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t('pages:policies.edit.pageContent')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div>
+                        <Label htmlFor="title">{t('pages:policies.edit.titleLabel')} *</Label>
+                        <Input
+                          id="title"
+                          value={formData.title}
+                          onChange={(e) => handleTitleChange(e.target.value)}
+                          placeholder={t('pages:policies.edit.titlePlaceholder')}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="slug">{t('pages:policies.edit.slugLabel')} *</Label>
+                        <Input
+                          id="slug"
+                          value={formData.slug}
+                          onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                          placeholder={t('pages:policies.edit.slugPlaceholder')}
+                          required
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {t('pages:policies.edit.slugHelp', { slug: formData.slug })}
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="content">{t('pages:policies.edit.contentLabel')} *</Label>
+                        <Textarea
+                          id="content"
+                          value={formData.content}
+                          onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                          placeholder={t('pages:policies.edit.contentPlaceholder')}
+                          rows={15}
+                          required
+                          className="font-mono text-sm"
+                        />
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {t('pages:policies.edit.contentHelp')}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 <div>
-                  <Label htmlFor="slug">URL Slug *</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    placeholder="e.g., privacy-policy"
-                    required
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    This will be the URL: /{formData.slug}
-                  </p>
-                </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t('pages:policies.edit.pageSettings')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="status">{t('pages:policies.edit.statusLabel')}</Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value: 'Active' | 'Inactive') =>
+                            setFormData(prev => ({ ...prev, status: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active">
+                              {t('pages:policies.statusActive')}
+                            </SelectItem>
+                            <SelectItem value="Inactive">
+                              {t('pages:policies.statusInactive')}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                <div>
-                  <Label htmlFor="content">Content *</Label>
-               
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Use Markdown syntax for formatting. Preview will be rendered as HTML.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                      <div>
+                        <Label htmlFor="meta_description">
+                          {t('pages:policies.edit.metaDescriptionLabel')}
+                        </Label>
+                        <Textarea
+                          id="meta_description"
+                          value={formData.meta_description}
+                          onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                          placeholder={t('pages:policies.edit.metaDescriptionPlaceholder')}
+                          rows={3}
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {t('pages:policies.edit.metaDescriptionHelp')}
+                        </p>
+                      </div>
 
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Page Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value: 'Active' | 'Inactive') =>
-                      setFormData(prev => ({ ...prev, status: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex items-center gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        {loading ? t('pages:policies.edit.updatingButton') : t('pages:policies.edit.updateButton')}
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </div>
-
-                <div>
-                  <Label htmlFor="meta_description">Meta Description</Label>
-                  <Textarea
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-                    placeholder="Brief description for SEO..."
-                    rows={3}
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Optional: Used for search engine optimization
-                  </p>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {loading ? 'Updating...' : 'Update Policy'}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </form>
+              </div>
+            </form>
           </div>
         </div>
       </div>

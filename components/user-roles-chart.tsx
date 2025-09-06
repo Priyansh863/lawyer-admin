@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUserRolesDistribution } from "@/lib/adminApi"
+import { useTranslation } from "@/hooks/useTranslation"
+import Skeleton from "react-loading-skeleton"
+import "react-loading-skeleton/dist/skeleton.css"
 
 interface RoleData {
   role: string;
@@ -17,6 +20,7 @@ const roleColors = {
 };
 
 export function UserRolesChart() {
+  const { t } = useTranslation()
   const [roleData, setRoleData] = useState<RoleData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,24 +58,44 @@ export function UserRolesChart() {
     return -(startPercentage / 100) * circumference;
   };
 
+  const getRoleTranslation = (role: string) => {
+    switch (role.toLowerCase()) {
+      case "lawyer":
+        return t('pages:userRolesChart.lawyer');
+      case "client":
+        return t('pages:userRolesChart.client');
+      case "admin":
+        return t('pages:userRolesChart.admin');
+      case "user":
+        return t('pages:userRolesChart.user');
+      default:
+        return role;
+    }
+  };
+
   if (loading) {
     return (
       <Card className="border-0 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">User Roles</CardTitle>
-          <p className="text-sm text-gray-500">Distribution</p>
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            {t('pages:userRolesChart.title')}
+          </CardTitle>
+          <p className="text-sm text-gray-500">
+            {t('pages:userRolesChart.subtitle')}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center">
-            <div className="w-48 h-48 bg-gray-200 rounded-full animate-pulse"></div>
+            <Skeleton circle width={192} height={192} />
           </div>
           <div className="mt-4 space-y-2">
             {[1, 2, 3].map((index) => (
-              <div key={index} className="flex items-center justify-between animate-pulse">
+              <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <Skeleton circle width={12} height={12} />
+                  <Skeleton width={80} height={16} />
                 </div>
+                <Skeleton width={40} height={16} />
               </div>
             ))}
           </div>
@@ -86,8 +110,12 @@ export function UserRolesChart() {
   return (
     <Card className="border-0 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">User Roles</CardTitle>
-        <p className="text-sm text-gray-500">Distribution</p>
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          {t('pages:userRolesChart.title')}
+        </CardTitle>
+        <p className="text-sm text-gray-500">
+          {t('pages:userRolesChart.subtitle')}
+        </p>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center">
@@ -124,7 +152,7 @@ export function UserRolesChart() {
                     {primaryRole?.percentage}%
                   </text>
                   <text x="100" y="110" textAnchor="middle" className="text-xs fill-gray-600">
-                    {primaryRole?.role?.charAt(0).toUpperCase() + primaryRole?.role?.slice(1)}s
+                    {getRoleTranslation(primaryRole.role)}
                   </text>
                 </>
               )}
@@ -139,9 +167,10 @@ export function UserRolesChart() {
                 <div className="flex items-center space-x-2">
                   <div className={`w-3 h-3 ${colorConfig.bg} rounded-full`}></div>
                   <span className="text-sm text-gray-600">
-                    {role?.role?.charAt(0).toUpperCase() + role?.role?.slice(1)}s ({role?.percentage}%)
+                    {getRoleTranslation(role.role)} ({role?.percentage}%)
                   </span>
                 </div>
+                <span className="text-sm text-gray-500">{role.count}</span>
               </div>
             );
           })}

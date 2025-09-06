@@ -13,6 +13,9 @@ import { Eye, Edit, Trash2, Download, Check, X } from "lucide-react";
 import { getAllUsers, verifyLawyer, rejectLawyer, exportUsers } from "@/lib/adminApi";
 import { useToast } from "@/components/ui/use-toast";
 import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
+import { useTranslation } from "@/hooks/useTranslation";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface User {
   id: string;
@@ -26,6 +29,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -44,8 +48,8 @@ export default function UsersPage() {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch users",
+        title: t('common:error'),
+        description: t('pages:users.fetchError'),
         variant: "destructive",
       });
     } finally {
@@ -62,16 +66,16 @@ export default function UsersPage() {
       const response = await verifyLawyer(userId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Lawyer verified successfully",
+          title: t('common:success'),
+          description: t('pages:users.verifySuccess'),
         });
-        fetchUsers(); // Refresh the list
+        fetchUsers();
       }
     } catch (error) {
       console.error('Error verifying lawyer:', error);
       toast({
-        title: "Error",
-        description: "Failed to verify lawyer",
+        title: t('common:error'),
+        description: t('pages:users.verifyError'),
         variant: "destructive",
       });
     }
@@ -79,19 +83,19 @@ export default function UsersPage() {
 
   const handleRejectLawyer = async (userId: string) => {
     try {
-      const response = await rejectLawyer(userId, 'Verification rejected by admin');
+      const response = await rejectLawyer(userId, t('pages:users.rejectReason'));
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Lawyer verification rejected",
+          title: t('common:success'),
+          description: t('pages:users.rejectSuccess'),
         });
-        fetchUsers(); // Refresh the list
+        fetchUsers();
       }
     } catch (error) {
       console.error('Error rejecting lawyer:', error);
       toast({
-        title: "Error",
-        description: "Failed to reject lawyer",
+        title: t('common:error'),
+        description: t('pages:users.rejectError'),
         variant: "destructive",
       });
     }
@@ -108,20 +112,28 @@ export default function UsersPage() {
       return matchesSearch && matchesStatus && matchesRole;
     });
 
-    // Format data for export by excluding unwanted fields
+    if (filteredUsers.length === 0) {
+      toast({
+        title: t('common:error'),
+        description: t('pages:users.noDataExport'),
+        variant: "destructive",
+      });
+      return;
+    }
+
     const exportData = formatDataForExport(filteredUsers, ['avatar']);
 
     if (format === 'csv') {
       exportToCSV(exportData, 'users');
       toast({
-        title: "Success",
-        description: "Users data exported to CSV successfully",
+        title: t('common:success'),
+        description: t('pages:users.exportCSVSuccess'),
       });
     } else {
       exportToJSON(exportData, 'users');
       toast({
-        title: "Success", 
-        description: "Users data exported to JSON successfully",
+        title: t('common:success'), 
+        description: t('pages:users.exportJSONSuccess'),
       });
     }
   };
@@ -140,6 +152,21 @@ export default function UsersPage() {
     }
   };
 
+  const getStatusTranslation = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return t('pages:users.active');
+      case "verified":
+        return t('pages:users.verified');
+      case "inactive":
+        return t('pages:users.inactive');
+      case "pending":
+        return t('pages:users.pending');
+      default:
+        return status;
+    }
+  };
+
   const getRoleColor = (role: string) => {
     if (!role) return "bg-gray-100 text-gray-800";
     switch (role.toLowerCase()) {
@@ -152,6 +179,23 @@ export default function UsersPage() {
     }
   };
 
+const getRoleTranslation = (role?: string) => {
+  if (!role) return ""; // or "Unknown"
+
+  switch (role.toLowerCase()) {
+    case "lawyer":
+      return t("pages:users.lawyer");
+    case "client":
+      return t("pages:users.client");
+    case "admin":
+      return t("pages:users.admin");
+    default:
+      return role;
+  }
+};
+
+
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -163,7 +207,9 @@ export default function UsersPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('pages:users.title')}
+              </h1>
             </div>
 
             {/* Filters and Actions */}
@@ -173,7 +219,7 @@ export default function UsersPage() {
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
                     <div className="relative flex-1 max-w-md">
                       <Input
-                        placeholder="Search by name or email"
+                        placeholder={t('pages:users.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-4"
@@ -182,23 +228,23 @@ export default function UsersPage() {
                     
                     <Select value={roleFilter} onValueChange={setRoleFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Role" />
+                        <SelectValue placeholder={t('pages:users.role')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        <SelectItem value="client">Client</SelectItem>
-                        <SelectItem value="lawyer">Lawyer</SelectItem>
+                        <SelectItem value="all">{t('pages:users.allRoles')}</SelectItem>
+                        <SelectItem value="client">{t('pages:users.client')}</SelectItem>
+                        <SelectItem value="lawyer">{t('pages:users.lawyer')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t('pages:users.status')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="verified">Verified</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="all">{t('pages:users.allStatus')}</SelectItem>
+                        <SelectItem value="verified">{t('pages:users.verified')}</SelectItem>
+                        <SelectItem value="pending">{t('pages:users.pending')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -208,17 +254,19 @@ export default function UsersPage() {
                       variant="outline" 
                       className="flex items-center gap-2"
                       onClick={() => handleExport('csv')}
+                      disabled={loading || users.length === 0}
                     >
                       <Download className="h-4 w-4" />
-                      Export CSV
+                      {t('pages:users.exportCSV')}
                     </Button>
                     <Button 
                       variant="outline" 
                       className="flex items-center gap-2"
                       onClick={() => handleExport('json')}
+                      disabled={loading || users.length === 0}
                     >
                       <Download className="h-4 w-4" />
-                      Export JSON
+                      {t('pages:users.exportJSON')}
                     </Button>
                   </div>
                 </div>
@@ -232,52 +280,53 @@ export default function UsersPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
+                        {t('pages:users.name')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
+                        {t('pages:users.email')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
+                        {t('pages:users.role')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Registered On
+                        {t('pages:users.registeredOn')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t('pages:users.status')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        {t('pages:users.actions')}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
-                      // Loading skeleton
+                      // Loading skeleton with react-loading-skeleton
                       Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index} className="animate-pulse">
+                        <tr key={index}>
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
-                              <div className="h-4 bg-gray-200 rounded w-24"></div>
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton width={100} height={16} />
                             </div>
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-32"></div>
+                            <Skeleton width={120} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
+                            <Skeleton width={60} height={24} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            <Skeleton width={80} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
+                            <Skeleton width={60} height={24} />
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex gap-2">
-                              <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                              <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton circle width={32} height={32} />
                             </div>
                           </td>
                         </tr>
@@ -285,7 +334,7 @@ export default function UsersPage() {
                     ) : users.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-8 px-6 text-center text-gray-500">
-                          No users found
+                          {t('pages:users.noUsers')}
                         </td>
                       </tr>
                     ) : (
@@ -307,7 +356,7 @@ export default function UsersPage() {
                           </td>
                           <td className="py-4 px-6">
                             <Badge className={getRoleColor(user.role)}>
-                              {user.role}
+                              {getRoleTranslation(user.role)}
                             </Badge>
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-500">
@@ -315,7 +364,7 @@ export default function UsersPage() {
                           </td>
                           <td className="py-4 px-6">
                             <Badge className={getStatusColor(user.status)}>
-                              {user.status}
+                              {getStatusTranslation(user.status)}
                             </Badge>
                           </td>
                           <td className="py-4 px-6">
@@ -324,7 +373,7 @@ export default function UsersPage() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0"
-                                title="View Details"
+                                title={t('pages:users.viewDetails')}
                                 onClick={() => router.push(`/users/${user.id}`)}
                               >
                                 <Eye className="h-4 w-4" />
@@ -335,7 +384,7 @@ export default function UsersPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                                    title="Verify Lawyer"
+                                    title={t('pages:users.verifyLawyer')}
                                     onClick={() => handleVerifyLawyer(user.id)}
                                   >
                                     <Check className="h-4 w-4" />
@@ -344,7 +393,7 @@ export default function UsersPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                    title="Reject Lawyer"
+                                    title={t('pages:users.rejectLawyer')}
                                     onClick={() => handleRejectLawyer(user.id)}
                                   >
                                     <X className="h-4 w-4" />

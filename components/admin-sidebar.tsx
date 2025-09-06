@@ -20,46 +20,55 @@ import {
   ChevronRight,
   ScrollText
 } from "lucide-react"
+import { useTranslation } from "@/hooks/useTranslation"
 
 const sidebarItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    translationKey: "dashboard"
   },
   {
     title: "Users",
     href: "/users",
     icon: Users,
+    translationKey: "users"
   },
   {
     title: "Lawyer Verification",
     href: "/lawyer-verification",
     icon: Shield,
+    translationKey: "lawyerVerification"
   },
   {
     title: "Transactions",
     href: "/transactions",
     icon: CreditCard,
+    translationKey: "transactions"
   },
   {
     title: "Content Monitoring",
     href: "/content-monitoring",
     icon: FileText,
+    translationKey: "contentMonitoring"
   },
   {
     title: "Policies",
     href: "/policies",
     icon: ScrollText,
+    translationKey: "policies"
   },
   {
     title: "Settings",
     href: "/settings",
     icon: Settings,
+    translationKey: "settings"
   },
 ]
 
 export function AdminSidebar() {
+  const { t } = useTranslation()
   const { data: session } = useSession()
   const router = useRouter()
   const pathname = usePathname()
@@ -85,11 +94,14 @@ export function AdminSidebar() {
     if (userData?.first_name) {
       return userData.first_name
     }
-    return userData?.email?.split('@')[0] || 'Admin User'
+    return userData?.email?.split('@')[0] || t('pages:sidebar.adminUser')
   }
 
   const getUserRole = () => {
-    return userData?.account_type === 'admin' ? 'Super Admin' : 'Admin'
+    if (userData?.account_type === 'admin') {
+      return t('pages:sidebar.superAdmin')
+    }
+    return t('pages:sidebar.admin')
   }
 
   const getUserInitials = () => {
@@ -117,7 +129,7 @@ export function AdminSidebar() {
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8 bg-gray-900">
               {getUserImage() ? (
-                <AvatarImage src={getUserImage()} alt="User Avatar" />
+                <AvatarImage src={getUserImage()} alt={t('pages:sidebar.userAvatarAlt')} />
               ) : null}
               <AvatarFallback className="text-white text-sm font-medium">
                 {getUserInitials()}
@@ -134,6 +146,7 @@ export function AdminSidebar() {
           size="sm"
           onClick={() => setCollapsed(!collapsed)}
           className="h-8 w-8 p-0"
+          title={collapsed ? t('pages:sidebar.expandSidebar') : t('pages:sidebar.collapseSidebar')}
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -159,13 +172,30 @@ export function AdminSidebar() {
                 isActive && "bg-gray-100 text-gray-900"
               )}
               onClick={() => router.push(item.href)}
+              title={!collapsed ? undefined : t(`pages:sidebar.${item.translationKey}`)}
             >
               <Icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
-              {!collapsed && <span>{item.title}</span>}
+              {!collapsed && <span>{t(`pages:sidebar.${item.translationKey}`)}</span>}
             </Button>
           )
         })}
       </nav>
+
+      {/* Logout Button */}
+      <div className="p-4 border-t border-gray-200">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-left font-normal text-red-600 hover:text-red-700 hover:bg-red-50",
+            collapsed ? "px-2" : "px-3"
+          )}
+          onClick={handleLogout}
+          title={collapsed ? t('pages:sidebar.logout') : undefined}
+        >
+          <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
+          {!collapsed && <span>{t('pages:sidebar.logout')}</span>}
+        </Button>
+      </div>
     </div>
   )
 }

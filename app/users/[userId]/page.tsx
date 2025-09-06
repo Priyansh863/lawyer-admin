@@ -12,6 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Mail, Phone, Calendar, Shield, Activity, Bell, CheckCircle, XCircle, Clock } from "lucide-react";
 import { getUserDetails, verifyLawyer, rejectLawyer } from "@/lib/adminApi";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface UserDetails {
   id: string;
@@ -53,6 +56,7 @@ interface UserDetails {
 }
 
 export default function UserDetailsPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const userId = params.userId as string;
@@ -69,7 +73,7 @@ export default function UserDetailsPage() {
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
-      toast.error('Failed to fetch user details');
+      toast.error(t('pages:userDetails.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -85,25 +89,25 @@ export default function UserDetailsPage() {
     try {
       const response = await verifyLawyer(userId);
       if (response.success) {
-        toast.success('Lawyer verified successfully');
-        fetchUserDetails(); // Refresh data
+        toast.success(t('pages:userDetails.verifySuccess'));
+        fetchUserDetails();
       }
     } catch (error) {
       console.error('Error verifying lawyer:', error);
-      toast.error('Failed to verify lawyer');
+      toast.error(t('pages:userDetails.verifyError'));
     }
   };
 
   const handleRejectLawyer = async () => {
     try {
-      const response = await rejectLawyer(userId, 'Verification rejected by admin');
+      const response = await rejectLawyer(userId, t('pages:userDetails.rejectReason'));
       if (response.success) {
-        toast.success('Lawyer verification rejected');
-        fetchUserDetails(); // Refresh data
+        toast.success(t('pages:userDetails.rejectSuccess'));
+        fetchUserDetails();
       }
     } catch (error) {
       console.error('Error rejecting lawyer:', error);
-      toast.error('Failed to reject lawyer');
+      toast.error(t('pages:userDetails.rejectError'));
     }
   };
 
@@ -112,14 +116,14 @@ export default function UserDetailsPage() {
   };
 
   const getStatusText = (status: number) => {
-    return status === 1 ? "Active" : "Inactive";
+    return status === 1 ? t('pages:userDetails.active') : t('pages:userDetails.inactive');
   };
 
   const getVerificationStatus = (isVerified: number, accountType: string) => {
-    if (accountType !== 'lawyer') return { text: 'N/A', color: 'bg-gray-100 text-gray-800' };
+    if (accountType !== 'lawyer') return { text: t('pages:userDetails.notApplicable'), color: 'bg-gray-100 text-gray-800' };
     return isVerified === 1 
-      ? { text: 'Verified', color: 'bg-green-100 text-green-800' }
-      : { text: 'Pending', color: 'bg-yellow-100 text-yellow-800' };
+      ? { text: t('pages:userDetails.verified'), color: 'bg-green-100 text-green-800' }
+      : { text: t('pages:userDetails.pending'), color: 'bg-yellow-100 text-yellow-800' };
   };
 
   const getPriorityColor = (priority: string) => {
@@ -135,6 +139,32 @@ export default function UserDetailsPage() {
     }
   };
 
+  const getAccountTypeTranslation = (accountType: string) => {
+    switch (accountType.toLowerCase()) {
+      case 'lawyer':
+        return t('pages:userDetails.lawyer');
+      case 'client':
+        return t('pages:userDetails.client');
+      case 'admin':
+        return t('pages:userDetails.admin');
+      default:
+        return accountType;
+    }
+  };
+
+  const getAccountTypeColor = (accountType: string) => {
+    switch (accountType.toLowerCase()) {
+      case 'lawyer':
+        return 'bg-blue-100 text-blue-800';
+      case 'client':
+        return 'bg-green-100 text-green-800';
+      case 'admin':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -143,17 +173,93 @@ export default function UserDetailsPage() {
           <AdminHeader />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="h-64 bg-gray-200 rounded-lg"></div>
-                    <div className="h-48 bg-gray-200 rounded-lg"></div>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="h-32 bg-gray-200 rounded-lg"></div>
-                    <div className="h-64 bg-gray-200 rounded-lg"></div>
-                  </div>
+              <div className="mb-6 flex items-center gap-4">
+                <Skeleton width={100} height={40} />
+                <div>
+                  <Skeleton width={200} height={28} />
+                  <Skeleton width={120} height={20} className="mt-1" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <Skeleton width={180} height={24} />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-start gap-6">
+                        <Skeleton circle width={80} height={80} />
+                        <div className="flex-1 space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Skeleton width={120} height={20} />
+                            <Skeleton width={120} height={20} />
+                            <Skeleton width={120} height={20} />
+                            <Skeleton width={120} height={20} />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <Skeleton width={180} height={24} />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Skeleton height={80} />
+                        <Skeleton height={80} />
+                        <Skeleton height={80} />
+                        <Skeleton height={80} />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <Skeleton width={180} height={24} />
+                      <Skeleton width={200} height={16} />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                          <div key={index} className="flex items-start gap-3 p-3">
+                            <Skeleton circle width={16} height={16} className="mt-2" />
+                            <div className="flex-1">
+                              <Skeleton width={120} height={18} className="mb-2" />
+                              <Skeleton width={200} height={14} className="mb-2" />
+                              <Skeleton width={150} height={12} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <Skeleton width={120} height={24} />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={100} height={20} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <Skeleton width={120} height={24} />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={100} height={20} />
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -172,11 +278,15 @@ export default function UserDetailsPage() {
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
               <div className="text-center py-12">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">User not found</h2>
-                <p className="text-gray-600 mb-4">The user you're looking for doesn't exist.</p>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {t('pages:userDetails.userNotFound')}
+                </h2>
+                <p className="text-gray-600 mb-4">
+                  {t('pages:userDetails.userNotFoundDesc')}
+                </p>
                 <Button onClick={() => router.back()}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Go Back
+                  {t('common:back')}
                 </Button>
               </div>
             </div>
@@ -208,13 +318,15 @@ export default function UserDetailsPage() {
                   className="flex items-center gap-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back
+                  {t('common:back')}
                 </Button>
                 <div>
                   <h1 className="text-2xl font-semibold text-gray-900">
                     {personalInfo.firstName} {personalInfo.lastName}
                   </h1>
-                  <p className="text-gray-600 mt-1">User Details</p>
+                  <p className="text-gray-600 mt-1">
+                    {t('pages:userDetails.title')}
+                  </p>
                 </div>
               </div>
               
@@ -225,14 +337,14 @@ export default function UserDetailsPage() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Verify Lawyer
+                    {t('pages:userDetails.verifyLawyer')}
                   </Button>
                   <Button
                     onClick={handleRejectLawyer}
                     variant="destructive"
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    {t('pages:userDetails.reject')}
                   </Button>
                 </div>
               )}
@@ -246,7 +358,7 @@ export default function UserDetailsPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5" />
-                      Personal Information
+                      {t('pages:userDetails.personalInfo')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -261,29 +373,37 @@ export default function UserDetailsPage() {
                       <div className="flex-1 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm font-medium text-gray-500">Full Name</label>
+                            <label className="text-sm font-medium text-gray-500">
+                              {t('pages:userDetails.fullName')}
+                            </label>
                             <p className="text-gray-900">{personalInfo.firstName} {personalInfo.lastName}</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-500">Account Type</label>
+                            <label className="text-sm font-medium text-gray-500">
+                              {t('pages:userDetails.accountType')}
+                            </label>
                             <div className="flex items-center gap-2">
-                              <Badge className={personalInfo.accountType === 'lawyer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}>
-                                {personalInfo.accountType}
+                              <Badge className={getAccountTypeColor(personalInfo.accountType)}>
+                                {getAccountTypeTranslation(personalInfo.accountType)}
                               </Badge>
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-500">Email</label>
+                            <label className="text-sm font-medium text-gray-500">
+                              {t('pages:userDetails.email')}
+                            </label>
                             <div className="flex items-center gap-2">
                               <Mail className="h-4 w-4 text-gray-400" />
                               <p className="text-gray-900">{personalInfo.email}</p>
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-500">Phone</label>
+                            <label className="text-sm font-medium text-gray-500">
+                              {t('pages:userDetails.phone')}
+                            </label>
                             <div className="flex items-center gap-2">
                               <Phone className="h-4 w-4 text-gray-400" />
-                              <p className="text-gray-900">{personalInfo.phone || 'Not provided'}</p>
+                              <p className="text-gray-900">{personalInfo.phone || t('pages:userDetails.notProvided')}</p>
                             </div>
                           </div>
                         </div>
@@ -298,7 +418,7 @@ export default function UserDetailsPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Activity className="h-5 w-5" />
-                        Activity Statistics
+                        {t('pages:userDetails.activityStats')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -306,25 +426,25 @@ export default function UserDetailsPage() {
                         {activityStats.totalCases !== undefined && (
                           <div className="text-center p-4 bg-blue-50 rounded-lg">
                             <div className="text-2xl font-bold text-blue-600">{activityStats.totalCases}</div>
-                            <div className="text-sm text-blue-600">Total Cases</div>
+                            <div className="text-sm text-blue-600">{t('pages:userDetails.totalCases')}</div>
                           </div>
                         )}
                         {activityStats.activeCases !== undefined && (
                           <div className="text-center p-4 bg-green-50 rounded-lg">
                             <div className="text-2xl font-bold text-green-600">{activityStats.activeCases}</div>
-                            <div className="text-sm text-green-600">Active Cases</div>
+                            <div className="text-sm text-green-600">{t('pages:userDetails.activeCases')}</div>
                           </div>
                         )}
                         {activityStats.totalMeetings !== undefined && (
                           <div className="text-center p-4 bg-purple-50 rounded-lg">
                             <div className="text-2xl font-bold text-purple-600">{activityStats.totalMeetings}</div>
-                            <div className="text-sm text-purple-600">Total Meetings</div>
+                            <div className="text-sm text-purple-600">{t('pages:userDetails.totalMeetings')}</div>
                           </div>
                         )}
                         {activityStats.completedMeetings !== undefined && (
                           <div className="text-center p-4 bg-orange-50 rounded-lg">
                             <div className="text-2xl font-bold text-orange-600">{activityStats.completedMeetings}</div>
-                            <div className="text-sm text-orange-600">Completed</div>
+                            <div className="text-sm text-orange-600">{t('pages:userDetails.completedMeetings')}</div>
                           </div>
                         )}
                       </div>
@@ -337,13 +457,15 @@ export default function UserDetailsPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Bell className="h-5 w-5" />
-                      Recent Notifications
+                      {t('pages:userDetails.recentNotifications')}
                     </CardTitle>
-                    <CardDescription>Last 10 notifications for this user</CardDescription>
+                    <CardDescription>{t('pages:userDetails.recentNotificationsDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {recentNotifications.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">No notifications found</p>
+                      <p className="text-gray-500 text-center py-4">
+                        {t('pages:userDetails.noNotifications')}
+                      </p>
                     ) : (
                       <div className="space-y-4">
                         {recentNotifications.map((notification) => (
@@ -360,7 +482,7 @@ export default function UserDetailsPage() {
                               <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
                                 {notification.createdBy && (
-                                  <span>by {notification.createdBy.name}</span>
+                                  <span>{t('pages:userDetails.by')} {notification.createdBy.name}</span>
                                 )}
                               </div>
                             </div>
@@ -377,25 +499,25 @@ export default function UserDetailsPage() {
                 {/* Account Status */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Account Status</CardTitle>
+                    <CardTitle>{t('pages:userDetails.accountStatus')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Status</span>
+                      <span className="text-sm font-medium">{t('pages:userDetails.status')}</span>
                       <Badge className={getStatusColor(personalInfo.isActive)}>
                         {getStatusText(personalInfo.isActive)}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Verification</span>
+                      <span className="text-sm font-medium">{t('pages:userDetails.verification')}</span>
                       <Badge className={verificationStatus.color}>
                         {verificationStatus.text}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Profile Complete</span>
+                      <span className="text-sm font-medium">{t('pages:userDetails.profileComplete')}</span>
                       <Badge className={getStatusColor(personalInfo.isProfileCompleted)}>
-                        {personalInfo.isProfileCompleted === 1 ? 'Complete' : 'Incomplete'}
+                        {personalInfo.isProfileCompleted === 1 ? t('pages:userDetails.complete') : t('pages:userDetails.incomplete')}
                       </Badge>
                     </div>
                   </CardContent>
@@ -404,11 +526,13 @@ export default function UserDetailsPage() {
                 {/* Account Details */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Account Details</CardTitle>
+                    <CardTitle>{t('pages:userDetails.accountDetails')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Registered On</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        {t('pages:userDetails.registeredOn')}
+                      </label>
                       <div className="flex items-center gap-2 mt-1">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <p className="text-sm text-gray-900">
@@ -417,7 +541,9 @@ export default function UserDetailsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        {t('pages:userDetails.lastUpdated')}
+                      </label>
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <p className="text-sm text-gray-900">
@@ -426,7 +552,9 @@ export default function UserDetailsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Push Notifications</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        {t('pages:userDetails.pushNotifications')}
+                      </label>
                       <p className="text-sm text-gray-900 mt-1">{accountDetails.fcmToken}</p>
                     </div>
                   </CardContent>

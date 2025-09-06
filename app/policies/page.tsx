@@ -24,6 +24,9 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import axiosInstance from '@/lib/axiosInstance';
 import { PoliciesSidebar } from '@/components/policies-sidebar';
+import { useTranslation } from '@/hooks/useTranslation';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 interface Policy {
   _id: string;
@@ -38,6 +41,7 @@ interface Policy {
 }
 
 export default function PoliciesPage() {
+  const { t } = useTranslation();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [filteredPolicies, setFilteredPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,8 +67,8 @@ export default function PoliciesPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to fetch policies',
+        title: t('pages:policies.fetchErrorTitle'),
+        description: t('pages:policies.fetchErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -91,21 +95,21 @@ export default function PoliciesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this policy?')) return;
+    if (!confirm(t('pages:policies.deleteConfirm'))) return;
 
     try {
       const response = await axiosInstance.delete(`/policies/${id}`);
       if (response.data.success) {
         toast({
-          title: 'Success',
-          description: 'Policy deleted successfully',
+          title: t('pages:policies.deleteSuccessTitle'),
+          description: t('pages:policies.deleteSuccessDesc'),
         });
         fetchPolicies();
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete policy',
+        title: t('pages:policies.deleteErrorTitle'),
+        description: t('pages:policies.deleteErrorDesc'),
         variant: 'destructive',
       });
     }
@@ -121,15 +125,17 @@ export default function PoliciesPage() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading policies...</div>
-        </div>
-      </div>
-    );
-  }
+  // Skeleton loading component
+  const SkeletonRow = () => (
+    <TableRow>
+      <TableCell><Skeleton width={30} /></TableCell>
+      <TableCell><Skeleton width={150} /></TableCell>
+      <TableCell><Skeleton width={100} /></TableCell>
+      <TableCell><Skeleton width={120} /></TableCell>
+      <TableCell><Skeleton width={80} /></TableCell>
+      <TableCell><Skeleton width={40} height={32} /></TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -143,102 +149,138 @@ export default function PoliciesPage() {
           <div className="container mx-auto p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold">Policies</h1>
+                <h1 className="text-3xl font-bold">
+                  {loading ? <Skeleton width={120} /> : t('pages:policies.title')}
+                </h1>
                 <p className="text-muted-foreground">
-                  Manage your legal pages like terms & conditions, privacy policy, etc.
+                  {loading ? <Skeleton width={300} /> : t('pages:policies.description')}
                 </p>
               </div>
-              <Button onClick={() => router.push('/policies/add')} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Legal Page
-              </Button>
+              {!loading && (
+                <Button onClick={() => router.push('/policies/create')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('pages:policies.createButton')}
+                </Button>
+              )}
             </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Legal Pages</CardTitle>
-          <div className="flex items-center gap-4">
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPolicies.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    No policies found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPolicies.map((policy, index) => (
-                  <TableRow key={policy._id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className="font-medium">{policy.title}</TableCell>
-                    <TableCell>
-                      <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                        /{policy.slug}
-                      </code>
-                    </TableCell>
-                    <TableCell>{formatDate(policy.last_updated)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={policy.status === 'Active' ? 'default' : 'secondary'}
-                        className={
-                          policy.status === 'Active'
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }
-                      >
-                        {policy.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => router.push(`/policies/${policy._id}`)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => router.push(`/policies/edit/${policy._id}`)}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(policy._id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {loading ? <Skeleton width={150} /> : t('pages:policies.legalPages')}
+                </CardTitle>
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder={t('pages:policies.searchPlaceholder')}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      disabled={loading}
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as 'All' | 'Active' | 'Inactive')}
+                    className="border rounded-md px-3 py-2"
+                    disabled={loading}
+                  >
+                    <option value="All">{t('pages:policies.filterAll')}</option>
+                    <option value="Active">{t('pages:policies.filterActive')}</option>
+                    <option value="Inactive">{t('pages:policies.filterInactive')}</option>
+                  </select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('pages:policies.table.id')}</TableHead>
+                      <TableHead>{t('pages:policies.table.title')}</TableHead>
+                      <TableHead>{t('pages:policies.table.url')}</TableHead>
+                      <TableHead>{t('pages:policies.table.lastUpdated')}</TableHead>
+                      <TableHead>{t('pages:policies.table.status')}</TableHead>
+                      <TableHead>{t('pages:policies.table.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      // Show skeleton loading when data is loading
+                      <>
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <SkeletonRow key={index} />
+                        ))}
+                      </>
+                    ) : filteredPolicies.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          {t('pages:policies.noPolicies')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPolicies.map((policy, index) => (
+                        <TableRow key={policy._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell className="font-medium">{policy.title}</TableCell>
+                          <TableCell>
+                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                              /{policy.slug}
+                            </code>
+                          </TableCell>
+                          <TableCell>{formatDate(policy.last_updated)}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={policy.status === 'Active' ? 'default' : 'secondary'}
+                              className={
+                                policy.status === 'Active'
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }
+                            >
+                              {policy.status === 'Active' 
+                                ? t('pages:policies.statusActive') 
+                                : t('pages:policies.statusInactive')
+                              }
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => router.push(`/policies/${policy._id}`)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  {t('pages:policies.actionView')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => router.push(`/policies/edit/${policy._id}`)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  {t('pages:policies.actionEdit')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(policy._id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {t('pages:policies.actionDelete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

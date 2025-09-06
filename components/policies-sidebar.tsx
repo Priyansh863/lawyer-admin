@@ -15,8 +15,10 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 import axiosInstance from '@/lib/axiosInstance';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Policy {
   _id: string;
@@ -32,6 +34,7 @@ interface PoliciesSidebarProps {
 }
 
 export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebarProps) {
+  const { t } = useTranslation();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -70,6 +73,28 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
     });
   };
 
+  const getStatusTranslation = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return t('pages:policiesSidebar.active');
+      case 'inactive':
+        return t('pages:policiesSidebar.inactive');
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
   return (
     <div className={cn(
       "flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300",
@@ -80,7 +105,9 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <ScrollText className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Policies</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t('pages:policiesSidebar.title')}
+            </h2>
           </div>
         )}
         {onToggle && (
@@ -89,6 +116,7 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
             size="sm"
             onClick={onToggle}
             className="h-8 w-8 p-0"
+            title={collapsed ? t('pages:policiesSidebar.expand') : t('pages:policiesSidebar.collapse')}
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -98,6 +126,20 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
           </Button>
         )}
       </div>
+
+      {/* Back Button - Only show when not on main policies page */}
+      {!collapsed && !pathname.includes('/policies') && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center gap-2"
+            onClick={() => router.push('/policies')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('common:back')}
+          </Button>
+        </div>
+      )}
 
       {!collapsed && (
         <>
@@ -109,7 +151,7 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
               variant={isActive('/policies/add') ? 'default' : 'outline'}
             >
               <Plus className="h-4 w-4" />
-              Add Legal Page
+              {t('pages:policiesSidebar.addLegalPage')}
             </Button>
             
             <Button
@@ -118,19 +160,37 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
               className="w-full flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
-              All Policies
+              {t('pages:policiesSidebar.allPolicies')}
             </Button>
           </div>
 
+          {/* Search */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder={t('pages:policiesSidebar.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
 
           {/* Policies List */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Recent Policies</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">
+                {t('pages:policiesSidebar.recentPolicies')}
+              </h3>
               {loading ? (
-                <div className="text-sm text-gray-500">Loading...</div>
+                <div className="text-sm text-gray-500">
+                  {t('pages:policiesSidebar.loading')}
+                </div>
               ) : filteredPolicies.length === 0 ? (
-                <div className="text-sm text-gray-500">No policies found</div>
+                <div className="text-sm text-gray-500">
+                  {searchTerm ? t('pages:policiesSidebar.noPoliciesFound') : t('pages:policiesSidebar.noPolicies')}
+                </div>
               ) : (
                 <div className="space-y-2">
                   {filteredPolicies.slice(0, 10).map((policy) => (
@@ -142,6 +202,7 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
                           ? "bg-blue-50 border-blue-200"
                           : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                       )}
+                      onClick={() => router.push(`/policies/${policy._id}`)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="text-sm font-medium text-gray-900 truncate">
@@ -151,12 +212,10 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
                           variant={policy.status === 'Active' ? 'default' : 'secondary'}
                           className={cn(
                             "text-xs",
-                            policy.status === 'Active'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-600'
+                            getStatusColor(policy.status)
                           )}
                         >
-                          {policy.status}
+                          {getStatusTranslation(policy.status)}
                         </Badge>
                       </div>
                       
@@ -178,6 +237,7 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
                               e.stopPropagation();
                               router.push(`/policies/${policy._id}`);
                             }}
+                            title={t('pages:policiesSidebar.view')}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -189,6 +249,7 @@ export function PoliciesSidebar({ collapsed = false, onToggle }: PoliciesSidebar
                               e.stopPropagation();
                               router.push(`/policies/edit/${policy._id}`);
                             }}
+                            title={t('pages:policiesSidebar.edit')}
                           >
                             <Edit className="h-3 w-3" />
                           </Button>

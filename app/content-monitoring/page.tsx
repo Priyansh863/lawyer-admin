@@ -11,6 +11,7 @@ import { Eye, Check, X, Download, Search } from "lucide-react";
 import { getContentMonitoring, updateContentStatus } from "@/lib/adminApi";
 import { useToast } from "@/components/ui/use-toast";
 import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ContentItem {
   author: any;
@@ -24,12 +25,15 @@ interface ContentItem {
 }
 
 export default function ContentMonitoringPage() {
+  const { t } = useTranslation();
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+
   const fetchContent = async () => {
     try {
       setLoading(true);
@@ -46,6 +50,11 @@ export default function ContentMonitoringPage() {
       }
     } catch (error) {
       console.error('Error fetching content:', error);
+      toast({
+        title: t('common:error'),
+        description: t('pages:contentMonitoring.fetchError'),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -55,47 +64,68 @@ export default function ContentMonitoringPage() {
     fetchContent();
   }, [searchTerm, statusFilter, typeFilter]);
 
-  const handleStatusUpdate = async (contentId: string, status: string, type: string) => {
+  const handleStatusUpdate = async (contentId: string, newStatus: string, type: string) => {
     try {
-      const response = await updateContentStatus(contentId, status, type);
+      setUpdatingItems(prev => new Set(prev).add(contentId));
+      
+      const response = await updateContentStatus(contentId, newStatus, type);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Content status updated successfully",
+          title: t('common:success'),
+          description: t('pages:contentMonitoring.statusUpdated'),
         });
-        fetchContent(); // Refresh the list
+        
+        // Update local state immediately for better UX
+        setContent(prevContent => 
+          prevContent.map(item => 
+            item._id === contentId 
+              ? { ...item, status: newStatus }
+              : item
+          )
+        );
       }
     } catch (error) {
       console.error('Error updating content status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update content status",
+        title: t('common:error'),
+        description: t('pages:contentMonitoring.updateError'),
         variant: "destructive",
       });
+    } finally {
+      setUpdatingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contentId);
+        return newSet;
+      });
     }
+  };
+
+  const toggleStatus = (item: ContentItem) => {
+    const newStatus = item.status === 'published' ? 'flagged' : 'published';
+    handleStatusUpdate(item._id, newStatus, item.type);
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "published":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 hover:bg-green-200";
       case "flagged":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 hover:bg-red-200";
       case "draft":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case "blog":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "ai post":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
 
@@ -110,20 +140,19 @@ export default function ContentMonitoringPage() {
       return matchesSearch && matchesStatus && matchesType;
     });
 
-    // Format data for export by excluding unwanted fields
     const exportData = formatDataForExport(filteredContent, ['author']);
 
     if (format === 'csv') {
       exportToCSV(exportData, 'content-monitoring');
       toast({
-        title: "Success",
-        description: "Content data exported to CSV successfully",
+        title: t('common:success'),
+        description: t('pages:contentMonitoring.exportCSVSuccess'),
       });
     } else {
       exportToJSON(exportData, 'content-monitoring');
       toast({
-        title: "Success", 
-        description: "Content data exported to JSON successfully",
+        title: t('common:success'),
+        description: t('pages:contentMonitoring.exportJSONSuccess'),
       });
     }
   };
@@ -139,8 +168,12 @@ export default function ContentMonitoringPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Content Monitoring</h1>
-              <p className="text-gray-600 mt-1">Content Monitoring list</p>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('pages:contentMonitoring.title')}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {t('pages:contentMonitoring.subtitle')}
+              </p>
             </div>
 
             {/* Filters and Actions */}
@@ -151,7 +184,7 @@ export default function ContentMonitoringPage() {
                     <div className="relative flex-1 max-w-md">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search by name"
+                        placeholder={t('pages:contentMonitoring.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10"
@@ -160,24 +193,24 @@ export default function ContentMonitoringPage() {
                     
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t('pages:contentMonitoring.status')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="flagged">Flagged</SelectItem>
+                        <SelectItem value="all">{t('pages:contentMonitoring.allStatus')}</SelectItem>
+                        <SelectItem value="published">{t('pages:contentMonitoring.published')}</SelectItem>
+                        <SelectItem value="draft">{t('pages:contentMonitoring.draft')}</SelectItem>
+                        <SelectItem value="flagged">{t('pages:contentMonitoring.flagged')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Type" />
+                        <SelectValue placeholder={t('pages:contentMonitoring.type')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="blog">Blog</SelectItem>
-                        <SelectItem value="ai-post">AI Post</SelectItem>
+                        <SelectItem value="all">{t('pages:contentMonitoring.allTypes')}</SelectItem>
+                        <SelectItem value="blog">{t('pages:contentMonitoring.blog')}</SelectItem>
+                        <SelectItem value="ai-post">{t('pages:contentMonitoring.aiPost')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -189,7 +222,7 @@ export default function ContentMonitoringPage() {
                       onClick={() => handleExport('csv')}
                     >
                       <Download className="h-4 w-4" />
-                      Export CSV
+                      {t('pages:contentMonitoring.exportCSV')}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -197,7 +230,7 @@ export default function ContentMonitoringPage() {
                       onClick={() => handleExport('json')}
                     >
                       <Download className="h-4 w-4" />
-                      Export JSON
+                      {t('pages:contentMonitoring.exportJSON')}
                     </Button>
                   </div>
                 </div>
@@ -211,31 +244,30 @@ export default function ContentMonitoringPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        CONTENT ID
+                        {t('pages:contentMonitoring.contentId')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        AUTHOR
+                        {t('pages:contentMonitoring.author')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        TYPE
+                        {t('pages:contentMonitoring.type')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        TITLE / SNIPPET
+                        {t('pages:contentMonitoring.titleSnippet')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        CREATED AT
+                        {t('pages:contentMonitoring.createdAt')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        STATUS
+                        {t('pages:contentMonitoring.status')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ACTIONS
+                        {t('pages:contentMonitoring.actions')}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
-                      // Loading skeleton
                       Array.from({ length: 5 }).map((_, index) => (
                         <tr key={index} className="animate-pulse">
                           <td className="py-4 px-6">
@@ -268,82 +300,97 @@ export default function ContentMonitoringPage() {
                     ) : content.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-8 px-6 text-center text-gray-500">
-                          No content found
+                          {t('pages:contentMonitoring.noContent')}
                         </td>
                       </tr>
                     ) : (
-                      content.map((item) => (
-                        <tr key={item._id} className="hover:bg-gray-50">
-                          <td className="py-4 px-6 text-sm text-gray-900">
-                            {item._id.slice(-8)}
-                          </td>
-                          <td className="py-4 px-6 text-sm text-gray-900">
-                            {item.author.email || 'Unknown'}
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge className={getTypeColor(item.type)}>
-                              {item.type}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                                {item.title}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate max-w-xs">
-                                {item.snippet}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="py-4 px-6 text-sm text-gray-500">
-                            {new Date(item.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge className={getStatusColor(item.status)}>
-                              {item.status}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                title="View Details"
+                      content.map((item) => {
+                        const isUpdating = updatingItems.has(item._id);
+                        return (
+                          <tr key={item._id} className="hover:bg-gray-50">
+                            <td className="py-4 px-6 text-sm text-gray-900">
+                              {item._id.slice(-8)}
+                            </td>
+                            <td className="py-4 px-6 text-sm text-gray-900">
+                              {item.author?.email || t('pages:contentMonitoring.unknown')}
+                            </td>
+                            <td className="py-4 px-6">
+                              <Badge 
+                                className={`cursor-pointer ${getTypeColor(item.type)}`}
+                                onClick={() => setTypeFilter(item.type === typeFilter ? "all" : item.type)}
                               >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {item.status !== 'published' && (
+                                {item.type}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                                  {item.title}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate max-w-xs">
+                                  {item.snippet}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-sm text-gray-500">
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-4 px-6">
+                              <Badge 
+                                className={`cursor-pointer ${getStatusColor(item.status)}`}
+                                onClick={() => toggleStatus(item)}
+                              >
+                                {item.status}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                                  title="Approve Content"
+                                  className="h-8 w-8 p-0"
+                                  title={t('pages:contentMonitoring.viewDetails')}
+                                  disabled={isUpdating}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={`h-8 w-8 p-0 ${
+                                    item.status === 'published' 
+                                      ? 'text-green-600 hover:text-green-700 bg-green-50' 
+                                      : 'text-gray-400 hover:text-gray-500'
+                                  }`}
+                                  title={t('pages:contentMonitoring.approve')}
                                   onClick={() => handleStatusUpdate(item._id, 'published', item.type)}
+                                  disabled={isUpdating || item.status === 'published'}
                                 >
                                   <Check className="h-4 w-4" />
                                 </Button>
-                              )}
-                              {item.status !== 'flagged' && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                  title="Flag Content"
+                                  className={`h-8 w-8 p-0 ${
+                                    item.status === 'flagged' 
+                                      ? 'text-red-600 hover:text-red-700 bg-red-50' 
+                                      : 'text-gray-400 hover:text-gray-500'
+                                  }`}
+                                  title={t('pages:contentMonitoring.flag')}
                                   onClick={() => handleStatusUpdate(item._id, 'flagged', item.type)}
+                                  disabled={isUpdating || item.status === 'flagged'}
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
-
             </div>
           </div>
         </main>

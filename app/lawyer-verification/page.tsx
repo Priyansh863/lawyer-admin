@@ -14,6 +14,9 @@ import { Eye, Check, X, Download, Search } from "lucide-react";
 import { getPendingLawyers, verifyLawyer, rejectLawyer } from "@/lib/adminApi";
 import { useToast } from "@/components/ui/use-toast";
 import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
+import { useTranslation } from "@/hooks/useTranslation";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Lawyer {
   id: string;
@@ -33,6 +36,7 @@ interface Lawyer {
 }
 
 export default function LawyerVerificationPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,8 +55,8 @@ export default function LawyerVerificationPage() {
     } catch (error) {
       console.error('Error fetching lawyers:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch lawyers",
+        title: t('common:error'),
+        description: t('pages:lawyerVerification.fetchError'),
         variant: "destructive",
       });
     } finally {
@@ -69,16 +73,16 @@ export default function LawyerVerificationPage() {
       const response = await verifyLawyer(lawyerId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Lawyer verified successfully",
+          title: t('common:success'),
+          description: t('pages:lawyerVerification.verifySuccess'),
         });
-        fetchLawyers(); // Refresh the list
+        fetchLawyers();
       }
     } catch (error) {
       console.error('Error verifying lawyer:', error);
       toast({
-        title: "Error",
-        description: "Failed to verify lawyer",
+        title: t('common:error'),
+        description: t('pages:lawyerVerification.verifyError'),
         variant: "destructive",
       });
     }
@@ -86,19 +90,19 @@ export default function LawyerVerificationPage() {
 
   const handleRejectLawyer = async (lawyerId: string) => {
     try {
-      const response = await rejectLawyer(lawyerId, 'Verification rejected by admin');
+      const response = await rejectLawyer(lawyerId, t('pages:lawyerVerification.rejectReason'));
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Lawyer verification rejected",
+          title: t('common:success'),
+          description: t('pages:lawyerVerification.rejectSuccess'),
         });
-        fetchLawyers(); // Refresh the list
+        fetchLawyers();
       }
     } catch (error) {
       console.error('Error rejecting lawyer:', error);
       toast({
-        title: "Error",
-        description: "Failed to reject lawyer",
+        title: t('common:error'),
+        description: t('pages:lawyerVerification.rejectError'),
         variant: "destructive",
       });
     }
@@ -125,20 +129,28 @@ export default function LawyerVerificationPage() {
       return matchesSearch && matchesStatus;
     });
 
-    // Format data for export by excluding unwanted fields
+    if (filteredLawyers.length === 0) {
+      toast({
+        title: t('common:error'),
+        description: t('pages:lawyerVerification.noDataExport'),
+        variant: "destructive",
+      });
+      return;
+    }
+
     const exportData = formatDataForExport(filteredLawyers, ['profileImage', 'selected']);
 
     if (format === 'csv') {
       exportToCSV(exportData, 'lawyer-verification');
       toast({
-        title: "Success",
-        description: "Lawyer verification data exported to CSV successfully",
+        title: t('common:success'),
+        description: t('pages:lawyerVerification.exportCSVSuccess'),
       });
     } else {
       exportToJSON(exportData, 'lawyer-verification');
       toast({
-        title: "Success", 
-        description: "Lawyer verification data exported to JSON successfully",
+        title: t('common:success'), 
+        description: t('pages:lawyerVerification.exportJSONSuccess'),
       });
     }
   };
@@ -156,6 +168,19 @@ export default function LawyerVerificationPage() {
     }
   };
 
+  const getStatusTranslation = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "verified":
+        return t('pages:lawyerVerification.verified');
+      case "pending":
+        return t('pages:lawyerVerification.pending');
+      case "rejected":
+        return t('pages:lawyerVerification.rejected');
+      default:
+        return status;
+    }
+  };
+
   const selectedLawyers = lawyers.filter(lawyer => lawyer.selected);
 
   return (
@@ -169,8 +194,12 @@ export default function LawyerVerificationPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Lawyer Verification</h1>
-              <p className="text-gray-600 mt-1">Review and verify lawyer applications</p>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('pages:lawyerVerification.title')}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {t('pages:lawyerVerification.subtitle')}
+              </p>
             </div>
 
             {/* Filters and Actions */}
@@ -181,7 +210,7 @@ export default function LawyerVerificationPage() {
                     <div className="relative flex-1 max-w-md">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search lawyers..."
+                        placeholder={t('pages:lawyerVerification.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10"
@@ -190,12 +219,12 @@ export default function LawyerVerificationPage() {
                     
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t('pages:lawyerVerification.status')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="verified">Verified</SelectItem>
+                        <SelectItem value="all">{t('pages:lawyerVerification.allStatus')}</SelectItem>
+                        <SelectItem value="pending">{t('pages:lawyerVerification.pending')}</SelectItem>
+                        <SelectItem value="verified">{t('pages:lawyerVerification.verified')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -210,7 +239,7 @@ export default function LawyerVerificationPage() {
                           }}
                         >
                           <Check className="h-4 w-4 mr-2" />
-                          Verify Selected ({selectedLawyers.length})
+                          {t('pages:lawyerVerification.verifySelected')} ({selectedLawyers.length})
                         </Button>
                         <Button 
                           variant="destructive"
@@ -219,7 +248,7 @@ export default function LawyerVerificationPage() {
                           }}
                         >
                           <X className="h-4 w-4 mr-2" />
-                          Reject Selected
+                          {t('pages:lawyerVerification.rejectSelected')}
                         </Button>
                       </>
                     )}
@@ -228,17 +257,19 @@ export default function LawyerVerificationPage() {
                         variant="outline" 
                         className="flex items-center gap-2"
                         onClick={() => handleExport('csv')}
+                        disabled={loading || lawyers.length === 0}
                       >
                         <Download className="h-4 w-4" />
-                        Export CSV
+                        {t('pages:lawyerVerification.exportCSV')}
                       </Button>
                       <Button 
                         variant="outline" 
                         className="flex items-center gap-2"
                         onClick={() => handleExport('json')}
+                        disabled={loading || lawyers.length === 0}
                       >
                         <Download className="h-4 w-4" />
-                        Export JSON
+                        {t('pages:lawyerVerification.exportJSON')}
                       </Button>
                     </div>
                   </div>
@@ -259,61 +290,62 @@ export default function LawyerVerificationPage() {
                         />
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Lawyer
+                        {t('pages:lawyerVerification.lawyer')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
+                        {t('pages:lawyerVerification.email')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Area of Practice
+                        {t('pages:lawyerVerification.areaOfPractice')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Experience
+                        {t('pages:lawyerVerification.experience')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submitted On
+                        {t('pages:lawyerVerification.submittedOn')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t('pages:lawyerVerification.status')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        {t('pages:lawyerVerification.actions')}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
-                      // Loading skeleton
+                      // Loading skeleton with react-loading-skeleton
                       Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index} className="animate-pulse">
+                        <tr key={index}>
                           <td className="py-4 px-6">
-                            <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                            <Skeleton circle width={16} height={16} />
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
-                              <div className="h-4 bg-gray-200 rounded w-24"></div>
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton width={100} height={16} />
                             </div>
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-32"></div>
+                            <Skeleton width={120} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            <Skeleton width={80} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-16"></div>
+                            <Skeleton width={60} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            <Skeleton width={80} height={16} />
                           </td>
                           <td className="py-4 px-6">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
+                            <Skeleton width={60} height={24} />
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex gap-2">
-                              <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                              <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton circle width={32} height={32} />
+                              <Skeleton circle width={32} height={32} />
                             </div>
                           </td>
                         </tr>
@@ -321,7 +353,7 @@ export default function LawyerVerificationPage() {
                     ) : lawyers.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-8 px-6 text-center text-gray-500">
-                          No lawyers found
+                          {t('pages:lawyerVerification.noLawyers')}
                         </td>
                       </tr>
                     ) : (
@@ -358,7 +390,7 @@ export default function LawyerVerificationPage() {
                           </td>
                           <td className="py-4 px-6">
                             <Badge className={getStatusColor(lawyer.status)}>
-                              {lawyer.status}
+                              {getStatusTranslation(lawyer.status)}
                             </Badge>
                           </td>
                           <td className="py-4 px-6">
@@ -367,7 +399,7 @@ export default function LawyerVerificationPage() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0"
-                                title="View Details"
+                                title={t('pages:lawyerVerification.viewDetails')}
                                 onClick={() => router.push(`/users/${lawyer.id}`)}
                               >
                                 <Eye className="h-4 w-4" />
@@ -378,7 +410,7 @@ export default function LawyerVerificationPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                                    title="Verify Lawyer"
+                                    title={t('pages:lawyerVerification.verifyLawyer')}
                                     onClick={() => handleVerifyLawyer(lawyer.id)}
                                   >
                                     <Check className="h-4 w-4" />
@@ -387,7 +419,7 @@ export default function LawyerVerificationPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                    title="Reject Lawyer"
+                                    title={t('pages:lawyerVerification.rejectLawyer')}
                                     onClick={() => handleRejectLawyer(lawyer.id)}
                                   >
                                     <X className="h-4 w-4" />

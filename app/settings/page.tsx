@@ -16,9 +16,12 @@ import { Camera, Save, Eye, EyeOff, Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAdminProfile, updateAdminProfile } from "@/lib/adminApi";
 import { handleImageUpload } from "@/lib/fileUpload";
+import LanguageSettings from "@/components/language-settings";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -74,8 +77,8 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error fetching admin profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to load profile data",
+        title: t('common.error'),
+        description: t('settings.profile.loadError'),
         variant: "destructive",
       });
     } finally {
@@ -88,8 +91,8 @@ export default function SettingsPage() {
       const response = await updateAdminProfile(profileData);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Profile updated successfully!",
+          title: t('common.success'),
+          description: t('settings.profile.updateSuccess'),
           variant: "default",
         });
         setProfileData(response.data);
@@ -97,8 +100,8 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to update profile",
+        title: t('common.error'),
+        description: t('settings.profile.updateError'),
         variant: "destructive",
       });
     }
@@ -128,15 +131,15 @@ export default function SettingsPage() {
       }));
       
       toast({
-        title: "Success",
-        description: "Profile picture uploaded successfully!",
+        title: t('common.success'),
+        description: t('settings.profile.imageSuccess'),
         variant: "default",
       });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to upload image',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('settings.profile.imageError'),
         variant: "destructive",
       });
     } finally {
@@ -148,24 +151,24 @@ export default function SettingsPage() {
   const handlePasswordChange = () => {
     if (securityData.newPassword !== securityData.confirmPassword) {
       toast({
-        title: "Error",
-        description: "New passwords don't match!",
+        title: t('common.error'),
+        description: t('settings.security.passwordMismatch'),
         variant: "destructive",
       });
       return;
     }
     if (securityData.newPassword.length < 8) {
       toast({
-        title: "Error",
-        description: "Password must be at least 8 characters long!",
+        title: t('common.error'),
+        description: t('settings.security.passwordLength'),
         variant: "destructive",
       });
       return;
     }
     // Here you would typically make an API call to change the password
     toast({
-      title: "Success",
-      description: "Password changed successfully!",
+      title: t('common.success'),
+      description: t('settings.security.passwordSuccess'),
       variant: "default",
     });
     setSecurityData(prev => ({
@@ -179,8 +182,8 @@ export default function SettingsPage() {
   const handleSystemSettingsUpdate = () => {
     // Here you would typically make an API call to update system settings
     toast({
-      title: "Success",
-      description: "System settings updated successfully!",
+      title: t('common.success'),
+      description: t('settings.system.updateSuccess'),
       variant: "default",
     });
   };
@@ -196,20 +199,24 @@ export default function SettingsPage() {
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
-              <p className="text-gray-600 mt-1">Manage your account and system preferences</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t('settings.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('settings.description')}</p>
             </div>
 
             <Tabs defaultValue="profile" className="space-y-6">
-             
+              <TabsList className="grid grid-cols-3 mb-6">
+                <TabsTrigger value="profile">{t('settings.profile.tab')}</TabsTrigger>
+                <TabsTrigger value="security">{t('settings.security.tab')}</TabsTrigger>
+                <TabsTrigger value="system">{t('settings.system.tab')}</TabsTrigger>
+              </TabsList>
 
               {/* Profile Tab */}
               <TabsContent value="profile">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
+                    <CardTitle>{t('settings.profile.title')}</CardTitle>
                     <CardDescription>
-                      Update your personal information and profile details
+                      {t('settings.profile.description')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -244,9 +251,9 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">Profile Picture</h3>
+                        <h3 className="font-medium text-gray-900">{t('settings.profile.profilePicture')}</h3>
                         <p className="text-sm text-gray-500">
-                          Upload a new profile picture. Recommended size: 200x200px
+                          {t('settings.profile.uploadHelp')}
                         </p>
                         {uploading && (
                           <div className="mt-2">
@@ -267,7 +274,7 @@ export default function SettingsPage() {
                     {/* Basic Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="firstName">{t('settings.profile.firstName')}</Label>
                         <Input
                           id="firstName"
                           value={profileData.first_name}
@@ -279,7 +286,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="lastName">{t('settings.profile.lastName')}</Label>
                         <Input
                           id="lastName"
                           value={profileData.last_name}
@@ -291,7 +298,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t('settings.profile.email')}</Label>
                         <Input
                           disabled
                           type="email"
@@ -303,7 +310,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">{t('settings.profile.phone')}</Label>
                         <Input
                           id="phone"
                           value={profileData.phone}
@@ -316,15 +323,13 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-           
-
                     <Button 
                       onClick={handleProfileUpdate} 
                       className="flex items-center gap-2"
                       disabled={loading}
                     >
                       <Save className="h-4 w-4" />
-                      Save Changes
+                      {t('common.save')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -336,14 +341,14 @@ export default function SettingsPage() {
                   {/* Change Password */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Change Password</CardTitle>
+                      <CardTitle>{t('settings.security.changePassword')}</CardTitle>
                       <CardDescription>
-                        Update your password to keep your account secure
+                        {t('settings.security.passwordDescription')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Label htmlFor="currentPassword">{t('settings.security.currentPassword')}</Label>
                         <div className="relative">
                           <Input
                             id="currentPassword"
@@ -366,7 +371,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password</Label>
+                        <Label htmlFor="newPassword">{t('settings.security.newPassword')}</Label>
                         <div className="relative">
                           <Input
                             id="newPassword"
@@ -389,7 +394,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Label htmlFor="confirmPassword">{t('settings.security.confirmPassword')}</Label>
                         <Input
                           id="confirmPassword"
                           type="password"
@@ -401,7 +406,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <Button onClick={handlePasswordChange}>
-                        Change Password
+                        {t('settings.security.changePassword')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -409,17 +414,17 @@ export default function SettingsPage() {
                   {/* Security Settings */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Security Settings</CardTitle>
+                      <CardTitle>{t('settings.security.settingsTitle')}</CardTitle>
                       <CardDescription>
-                        Configure your security preferences
+                        {t('settings.security.settingsDescription')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                          <Label>Two-Factor Authentication</Label>
+                          <Label>{t('settings.security.twoFactor')}</Label>
                           <p className="text-sm text-gray-500">
-                            Add an extra layer of security to your account
+                            {t('settings.security.twoFactorDesc')}
                           </p>
                         </div>
                         <Switch
@@ -432,9 +437,9 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                          <Label>Email Notifications</Label>
+                          <Label>{t('settings.security.emailNotifications')}</Label>
                           <p className="text-sm text-gray-500">
-                            Receive security alerts via email
+                            {t('settings.security.emailNotificationsDesc')}
                           </p>
                         </div>
                         <Switch
@@ -447,9 +452,9 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                          <Label>SMS Notifications</Label>
+                          <Label>{t('settings.security.smsNotifications')}</Label>
                           <p className="text-sm text-gray-500">
-                            Receive security alerts via SMS
+                            {t('settings.security.smsNotificationsDesc')}
                           </p>
                         </div>
                         <Switch
@@ -469,17 +474,17 @@ export default function SettingsPage() {
               <TabsContent value="system">
                 <Card>
                   <CardHeader>
-                    <CardTitle>System Settings</CardTitle>
+                    <CardTitle>{t('settings.system.title')}</CardTitle>
                     <CardDescription>
-                      Configure system-wide settings and preferences
+                      {t('settings.system.description')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label>Maintenance Mode</Label>
+                        <Label>{t('settings.system.maintenanceMode')}</Label>
                         <p className="text-sm text-gray-500">
-                          Enable maintenance mode to restrict user access
+                          {t('settings.system.maintenanceModeDesc')}
                         </p>
                       </div>
                       <Switch
@@ -492,9 +497,9 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label>User Registration</Label>
+                        <Label>{t('settings.system.userRegistration')}</Label>
                         <p className="text-sm text-gray-500">
-                          Allow new users to register accounts
+                          {t('settings.system.userRegistrationDesc')}
                         </p>
                       </div>
                       <Switch
@@ -507,9 +512,9 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label>Email Verification</Label>
+                        <Label>{t('settings.system.emailVerification')}</Label>
                         <p className="text-sm text-gray-500">
-                          Require email verification for new accounts
+                          {t('settings.system.emailVerificationDesc')}
                         </p>
                       </div>
                       <Switch
@@ -522,9 +527,9 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label>Auto Backup</Label>
+                        <Label>{t('settings.system.autoBackup')}</Label>
                         <p className="text-sm text-gray-500">
-                          Automatically backup system data
+                          {t('settings.system.autoBackupDesc')}
                         </p>
                       </div>
                       <Switch
@@ -536,7 +541,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="backupFrequency">Backup Frequency</Label>
+                      <Label htmlFor="backupFrequency">{t('settings.system.backupFrequency')}</Label>
                       <Select
                         value={systemSettings.backupFrequency}
                         onValueChange={(value) => setSystemSettings(prev => ({
@@ -548,21 +553,26 @@ export default function SettingsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="hourly">Hourly</SelectItem>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="hourly">{t('settings.system.hourly')}</SelectItem>
+                          <SelectItem value="daily">{t('settings.system.daily')}</SelectItem>
+                          <SelectItem value="weekly">{t('settings.system.weekly')}</SelectItem>
+                          <SelectItem value="monthly">{t('settings.system.monthly')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <Button onClick={handleSystemSettingsUpdate} className="flex items-center gap-2">
                       <Save className="h-4 w-4" />
-                      Save System Settings
+                      {t('settings.system.saveSettings')}
                     </Button>
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
+
+            {/* Language Settings at the bottom */}
+            <div className="mt-8">
+              <LanguageSettings />
+            </div>
           </div>
         </main>
       </div>

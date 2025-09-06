@@ -13,8 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useTranslation } from "@/hooks/useTranslation"
 
 export function AdminHeader() {
+  const { t } = useTranslation()
   const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
@@ -33,15 +35,15 @@ export function AdminHeader() {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
       toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of the admin panel.",
+        title: t('pages:adminHeader.logoutSuccess'),
+        description: t('pages:adminHeader.logoutSuccessDesc'),
         variant: "default",
       })
       router.push("/login")
     } catch (error) {
       toast({
-        title: "Logout failed",
-        description: "There was an error logging you out. Please try again.",
+        title: t('pages:adminHeader.logoutError'),
+        description: t('pages:adminHeader.logoutErrorDesc'),
         variant: "destructive",
       })
     }
@@ -54,11 +56,14 @@ export function AdminHeader() {
     if (userData?.first_name) {
       return userData.first_name
     }
-    return userData?.email?.split('@')[0] || 'Admin User'
+    return userData?.email?.split('@')[0] || t('pages:adminHeader.adminUser')
   }
 
   const getUserRole = () => {
-    return userData?.account_type === 'admin' ? 'Super Admin' : 'Admin'
+    if (userData?.account_type === 'admin') {
+      return t('pages:adminHeader.superAdmin')
+    }
+    return t('pages:adminHeader.admin')
   }
 
   const getUserImage = () => {
@@ -80,12 +85,14 @@ export function AdminHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">Admin Panel</h1>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {t('pages:adminHeader.title')}
+            </h1>
           </div>
 
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600 hidden sm:block">
-              Welcome, {getUserDisplayName()}
+              {t('pages:adminHeader.welcome')}, {getUserDisplayName()}
             </span>
             
             <DropdownMenu>
@@ -93,13 +100,13 @@ export function AdminHeader() {
                 <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                   <Avatar className="h-6 w-6">
                     {getUserImage() ? (
-                      <AvatarImage src={getUserImage()} alt="User Avatar" />
+                      <AvatarImage src={getUserImage()} alt={t('pages:adminHeader.userAvatarAlt')} />
                     ) : null}
                     <AvatarFallback className="text-xs">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:block">Account</span>
+                  <span className="hidden sm:block">{t('pages:adminHeader.account')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -107,7 +114,7 @@ export function AdminHeader() {
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
                       {getUserImage() ? (
-                        <AvatarImage src={getUserImage()} alt="User Avatar" />
+                        <AvatarImage src={getUserImage()} alt={t('pages:adminHeader.userAvatarAlt')} />
                       ) : null}
                       <AvatarFallback className="text-xs">
                         {getUserInitials()}
@@ -122,12 +129,12 @@ export function AdminHeader() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/settings')}>
                   <Settings className="h-4 w-4 mr-2" />
-                  Settings
+                  {t('pages:adminHeader.settings')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  {t('pages:adminHeader.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

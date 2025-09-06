@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getRecentActivity } from "@/lib/adminApi"
+import { useTranslation } from "@/hooks/useTranslation"
+import Skeleton from "react-loading-skeleton"
+import "react-loading-skeleton/dist/skeleton.css"
 
 interface ActivityItem {
   id: string;
@@ -37,6 +40,7 @@ const getActivityColor = (type: string) => {
 };
 
 export function RecentActivity() {
+  const { t } = useTranslation()
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,27 +57,27 @@ export function RecentActivity() {
         setActivities([
           {
             id: "1",
-            title: "Lawyer verified",
-            message: "Dr. S. Roy has been verified",
+            title: t('pages:recentActivity.lawyerVerified'),
+            message: t('pages:recentActivity.lawyerVerifiedDesc'),
             type: "verification",
             user: { name: "Dr. S. Roy", accountType: "lawyer", initials: "SR" },
-            timeAgo: "2 hours ago"
+            timeAgo: t('pages:recentActivity.hoursAgo', { hours: 2 })
           },
           {
             id: "2", 
-            title: "Blog Approved",
-            message: "Blog post approved",
+            title: t('pages:recentActivity.blogApproved'),
+            message: t('pages:recentActivity.blogApprovedDesc'),
             type: "blog_approval",
             user: { name: "Lawyer A. Khan", accountType: "lawyer", initials: "AK" },
-            timeAgo: "3 hours ago"
+            timeAgo: t('pages:recentActivity.hoursAgo', { hours: 3 })
           },
           {
             id: "3",
-            title: "New Client Registered", 
-            message: "New client registration",
+            title: t('pages:recentActivity.newClientRegistered'), 
+            message: t('pages:recentActivity.newClientRegisteredDesc'),
             type: "registration",
             user: { name: "M. Sharma", accountType: "client", initials: "MS" },
-            timeAgo: "5 hours ago"
+            timeAgo: t('pages:recentActivity.hoursAgo', { hours: 5 })
           }
         ]);
       } finally {
@@ -82,27 +86,50 @@ export function RecentActivity() {
     };
 
     fetchRecentActivity();
-  }, []);
+  }, [t]);
+
+  const getActivityTitle = (activity: ActivityItem) => {
+    switch (activity.type.toLowerCase()) {
+      case 'verification':
+      case 'lawyer_verification':
+        return t('pages:recentActivity.lawyerVerified');
+      case 'blog_approval':
+      case 'content_approval':
+        return t('pages:recentActivity.blogApproved');
+      case 'registration':
+      case 'user_registration':
+        return t('pages:recentActivity.newClientRegistered');
+      case 'meeting':
+      case 'chat':
+        return t('pages:recentActivity.meetingScheduled');
+      default:
+        return activity.title;
+    }
+  };
 
   if (loading) {
     return (
       <Card className="border-0 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
-          <p className="text-sm text-gray-500">Last 2 Weeks</p>
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            {t('pages:recentActivity.title')}
+          </CardTitle>
+          <p className="text-sm text-gray-500">
+            {t('pages:recentActivity.subtitle')}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3].map((index) => (
-              <div key={index} className="flex items-center justify-between animate-pulse">
+              <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+                  <Skeleton circle width={40} height={40} />
                   <div>
-                    <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                    <Skeleton width={120} height={16} className="mb-1" />
+                    <Skeleton width={80} height={14} />
                   </div>
                 </div>
-                <div className="h-3 bg-gray-200 rounded w-12"></div>
+                <Skeleton width={60} height={14} />
               </div>
             ))}
           </div>
@@ -114,13 +141,19 @@ export function RecentActivity() {
   return (
     <Card className="border-0 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
-        <p className="text-sm text-gray-500">Last 2 Weeks</p>
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          {t('pages:recentActivity.title')}
+        </CardTitle>
+        <p className="text-sm text-gray-500">
+          {t('pages:recentActivity.subtitle')}
+        </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => {
             const colors = getActivityColor(activity.type);
+            const translatedTitle = getActivityTitle(activity);
+            
             return (
               <div key={activity.id} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -130,8 +163,8 @@ export function RecentActivity() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-sm text-gray-500">{activity.user?.name || 'System'}</p>
+                    <p className="text-sm font-medium text-gray-900">{translatedTitle}</p>
+                    <p className="text-sm text-gray-500">{activity.user?.name || t('pages:recentActivity.system')}</p>
                   </div>
                 </div>
                 <span className="text-sm text-gray-400">{activity.timeAgo}</span>

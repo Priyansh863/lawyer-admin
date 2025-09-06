@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, Shield, FileText, DollarSign } from "lucide-react"
 import { getDashboardStats } from "@/lib/adminApi"
+import { useTranslation } from "@/hooks/useTranslation"
+import Skeleton from "react-loading-skeleton"
+import "react-loading-skeleton/dist/skeleton.css"
 
 interface DashboardStatsData {
   totalUsers: number;
@@ -13,6 +16,7 @@ interface DashboardStatsData {
 }
 
 export function DashboardStats() {
+  const { t } = useTranslation()
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,28 +39,28 @@ export function DashboardStats() {
 
   const statsConfig = [
     {
-      title: "Regular User",
+      title: t('pages:dashboardStats.regularUsers'),
       value: stats?.regularUsers || 0,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50"
     },
     {
-      title: "Verified Lawyers",
+      title: t('pages:dashboardStats.verifiedLawyers'),
       value: stats?.verifiedLawyers || 0,
       icon: Shield,
       color: "text-green-600",
       bgColor: "bg-green-50"
     },
     {
-      title: "Blogs/Articles Today",
+      title: t('pages:dashboardStats.contentToday'),
       value: stats?.contentToday || 0,
       icon: FileText,
       color: "text-purple-600",
       bgColor: "bg-purple-50"
     },
     {
-      title: "Tokens Transacted",
+      title: t('pages:dashboardStats.tokensTransacted'),
       value: `$${stats?.tokensTransacted?.toLocaleString() || 0}`,
       icon: DollarSign,
       color: "text-orange-600",
@@ -70,9 +74,17 @@ export function DashboardStats() {
         {[1, 2, 3, 4].map((index) => (
           <Card key={index} className="border-0 shadow-sm">
             <CardContent className="p-6">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Skeleton width={80} height={32} className="mb-2" />
+                  <Skeleton width={120} height={20} />
+                </div>
+                <div>
+                  <Skeleton circle width={48} height={48} />
+                </div>
+              </div>
+              <div className="mt-4">
+                <Skeleton height={4} />
               </div>
             </CardContent>
           </Card>

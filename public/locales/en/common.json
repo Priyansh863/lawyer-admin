@@ -1,0 +1,76 @@
+{
+  
+  
+  "common": {
+      "success": "Success",
+      "error": "Error",
+      "save": "Save",
+      "cancel": "Cancel",
+      "loading": "Loading...",
+      "english": "English",
+    "korean": "Korean"
+    },
+    "settings": {
+        "language": "Language",
+    "selectLanguage": "Select your preferred language",
+    "languageChanged": "Language has been changed successfully!",
+      "title": "Settings",
+      "description": "Manage your account and system preferences",
+      "profile": {
+        "tab": "Profile",
+        "title": "Profile Information",
+        "description": "Update your personal information and profile details",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "profilePicture": "Profile Picture",
+        "uploadHelp": "Upload a new profile picture. Recommended size: 200x200px",
+        "loadError": "Failed to load profile data",
+        "updateSuccess": "Profile updated successfully!",
+        "updateError": "Failed to update profile",
+        "imageSuccess": "Profile picture uploaded successfully!",
+        "imageError": "Failed to upload image"
+      },
+      "security": {
+        "tab": "Security",
+        "changePassword": "Change Password",
+        "passwordDescription": "Update your password to keep your account secure",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "passwordMismatch": "New passwords don't match!",
+        "passwordLength": "Password must be at least 8 characters long!",
+        "passwordSuccess": "Password changed successfully!",
+        "settingsTitle": "Security Settings",
+        "settingsDescription": "Configure your security preferences",
+        "twoFactor": "Two-Factor Authentication",
+        "twoFactorDesc": "Add an extra layer of security to your account",
+        "emailNotifications": "Email Notifications",
+        "emailNotificationsDesc": "Receive security alerts via email",
+        "smsNotifications": "SMS Notifications",
+        "smsNotificationsDesc": "Receive security alerts via SMS"
+      },
+      "system": {
+        "tab": "System",
+        "title": "System Settings",
+        "description": "Configure system-wide settings and preferences",
+        "maintenanceMode": "Maintenance Mode",
+        "maintenanceModeDesc": "Enable maintenance mode to restrict user access",
+        "userRegistration": "User Registration",
+        "userRegistrationDesc": "Allow new users to register accounts",
+        "emailVerification": "Email Verification",
+        "emailVerificationDesc": "Require email verification for new accounts",
+        "autoBackup": "Auto Backup",
+        "autoBackupDesc": "Automatically backup system data",
+        "backupFrequency": "Backup Frequency",
+        "hourly": "Hourly",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "saveSettings": "Save System Settings",
+        "updateSuccess": "System settings updated successfully!"
+      }
+    }
+  
+}

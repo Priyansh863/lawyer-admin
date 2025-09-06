@@ -12,6 +12,9 @@ import { CreditCard, Calendar, Users, Search, Download } from "lucide-react";
 import { getTransactions } from "@/lib/adminApi";
 import { useToast } from "@/components/ui/use-toast";
 import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
+import { useTranslation } from "@/hooks/useTranslation";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Transaction {
   _id: string;
@@ -32,6 +35,7 @@ interface TransactionStats {
 }
 
 export default function TransactionsPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<TransactionStats>({
@@ -61,6 +65,11 @@ export default function TransactionsPage() {
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      toast({
+        title: t('common:error'),
+        description: t('pages:transactions.fetchError'),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -97,8 +106,8 @@ export default function TransactionsPage() {
   const handleExport = (format: 'csv' | 'json') => {
     if (!transactions.length) {
       toast({
-        title: "No Data",
-        description: "No transactions available to export",
+        title: t('common:error'),
+        description: t('pages:transactions.noDataExport'),
         variant: "destructive",
       });
       return;
@@ -114,11 +123,32 @@ export default function TransactionsPage() {
     }
 
     toast({
-      title: "Export Successful",
-      description: `Transactions exported as ${format.toUpperCase()}`,
+      title: t('pages:common.success'),
+      description: t(`pages:transactions.export${format.toUpperCase()}Success`),
       variant: "default",
     });
   };
+
+  // Stats cards with loading skeletons
+  const StatCard = ({ title, value, icon: Icon, loading: isLoading }: { title: string; value: number; icon: any; loading: boolean }) => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            {isLoading ? (
+              <Skeleton width={80} height={24} className="mt-2" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</p>
+            )}
+          </div>
+          <div className="p-3 rounded-full bg-blue-100">
+            <Icon className="h-6 w-6 text-blue-600" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -131,11 +161,35 @@ export default function TransactionsPage() {
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Transactions</h1>
-              <p className="text-gray-600 mt-1">Transactions list</p>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {t('pages:transactions.title')}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {t('pages:transactions.subtitle')}
+              </p>
             </div>
 
-        
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <StatCard
+                title={t('pages:transactions.totalTokens')}
+                value={stats.totalTokensPurchased}
+                icon={CreditCard}
+                loading={loading}
+              />
+              <StatCard
+                title={t('pages:transactions.tokensToday')}
+                value={stats.tokensUsedToday}
+                icon={Calendar}
+                loading={loading}
+              />
+              <StatCard
+                title={t('pages:transactions.activeSubs')}
+                value={stats.activeSubscriptions}
+                icon={Users}
+                loading={loading}
+              />
+            </div>
 
             {/* Filters and Actions */}
             <Card className="mb-6">
@@ -145,7 +199,7 @@ export default function TransactionsPage() {
                     <div className="relative flex-1 max-w-md">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search by name..."
+                        placeholder={t('pages:transactions.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10"
@@ -154,24 +208,24 @@ export default function TransactionsPage() {
                     
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t('pages:transactions.status')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Success">Success</SelectItem>
-                        <SelectItem value="Failed">Failed</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="all">{t('pages:transactions.allStatus')}</SelectItem>
+                        <SelectItem value="Success">{t('pages:transactions.success')}</SelectItem>
+                        <SelectItem value="Failed">{t('pages:transactions.failed')}</SelectItem>
+                        <SelectItem value="Pending">{t('pages:transactions.pending')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
                       <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Type" />
+                        <SelectValue placeholder={t('pages:transactions.type')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="Purchase">Purchase</SelectItem>
-                        <SelectItem value="Subscription">Subscription</SelectItem>
+                        <SelectItem value="all">{t('pages:transactions.allTypes')}</SelectItem>
+                        <SelectItem value="Purchase">{t('pages:transactions.purchase')}</SelectItem>
+                        <SelectItem value="Subscription">{t('pages:transactions.subscription')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -181,17 +235,19 @@ export default function TransactionsPage() {
                       variant="outline" 
                       className="flex items-center gap-2"
                       onClick={() => handleExport('csv')}
+                      disabled={loading || transactions.length === 0}
                     >
                       <Download className="h-4 w-4" />
-                      Export CSV
+                      {t('pages:transactions.exportCSV')}
                     </Button>
                     <Button 
                       variant="outline" 
                       className="flex items-center gap-2"
                       onClick={() => handleExport('json')}
+                      disabled={loading || transactions.length === 0}
                     >
                       <Download className="h-4 w-4" />
-                      Export JSON
+                      {t('pages:transactions.exportJSON')}
                     </Button>
                   </div>
                 </div>
@@ -205,66 +261,50 @@ export default function TransactionsPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        TXN ID
+                        {t('pages:transactions.txnId')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        USER
+                        {t('pages:transactions.user')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ROLE
+                        {t('pages:transactions.role')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        TYPE
+                        {t('pages:transactions.type')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        AMOUNT (TOKENS)
+                        {t('pages:transactions.amount')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        DATE
+                        {t('pages:transactions.date')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        STATUS
+                        {t('pages:transactions.status')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        PAYMENT METHOD
+                        {t('pages:transactions.paymentMethod')}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
-                      // Loading skeleton
+                      // Loading skeleton for table rows
                       Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index} className="animate-pulse">
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-16"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-24"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-12"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-28"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
-                          </td>
+                        <tr key={index}>
+                          <td className="py-4 px-6"><Skeleton width={80} /></td>
+                          <td className="py-4 px-6"><Skeleton width={100} /></td>
+                          <td className="py-4 px-6"><Skeleton width={60} height={24} /></td>
+                          <td className="py-4 px-6"><Skeleton width={80} /></td>
+                          <td className="py-4 px-6"><Skeleton width={60} /></td>
+                          <td className="py-4 px-6"><Skeleton width={120} /></td>
+                          <td className="py-4 px-6"><Skeleton width={70} height={24} /></td>
+                          <td className="py-4 px-6"><Skeleton width={90} /></td>
                         </tr>
                       ))
                     ) : transactions.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-8 px-6 text-center text-gray-500">
-                          No transactions found
+                          {t('pages:transactions.noTransactions')}
                         </td>
                       </tr>
                     ) : (
@@ -277,34 +317,33 @@ export default function TransactionsPage() {
                             {transaction.user}
                           </td>
                           <td className="py-4 px-6">
-                            <Badge className={getRoleColor(transaction.role)}>
-                              {transaction.role}
-                            </Badge>
+                           <Badge className={getRoleColor(transaction.role)}>
+    {t(`pages:transactions.${transaction.role.toLowerCase()}`)}
+  </Badge>
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-900">
-                            {transaction.type}
-                          </td>
+  {t(`pages:transactions.${transaction.type.toLowerCase()}`)}
+</td>
                           <td className="py-4 px-6 text-sm text-gray-900">
-                            {transaction.amount}
+                            {transaction.amount.toLocaleString()}
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-500">
                             {new Date(transaction.date).toLocaleDateString()} {new Date(transaction.date).toLocaleTimeString()}
                           </td>
                           <td className="py-4 px-6">
                             <Badge className={getStatusColor(transaction.status)}>
-                              {transaction.status}
-                            </Badge>
+    {t(`pages:transactions.${transaction.status.toLowerCase()}`)}
+  </Badge>
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-900">
-                            {transaction.payment_method}
-                          </td>
+  {t(`pages:transactions.${transaction.payment_method.toLowerCase()}`)}
+</td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
               </div>
-
             </Card>
           </div>
         </main>

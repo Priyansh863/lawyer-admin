@@ -4,11 +4,11 @@ import { AdminSidebar } from "@/components/admin-sidebar"
 import { DashboardStats } from "@/components/dashboard-stats"
 import { UserRolesChart } from "@/components/user-roles-chart"
 import { RecentActivity } from "@/components/recent-activity"
-
-import { AdminHeader } from "@/components/admin-header";
-
+import { AdminHeader } from "@/components/admin-header"
+import { useTranslation } from "@/hooks/useTranslation"
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const { data: session } = useSession() as any
 
   const getUserDisplayName = () => {
@@ -18,7 +18,7 @@ export default function DashboardPage() {
     if (session?.user?.first_name) {
       return session?.user?.first_name
     }
-    return session?.email?.split('@')[0] || 'Admin User'
+    return session?.email?.split('@')[0] || t('pages:dashboard.adminUser')
   }
 
   return (
@@ -27,19 +27,20 @@ export default function DashboardPage() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-      <AdminHeader />
+        <AdminHeader />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
             {/* Page Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {t('pages:dashboard.title')}
+              </h1>
             </div>
 
             {/* Stats Cards */}
             <DashboardStats />
-
 
             {/* Charts and Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
