@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react"
 import { Search, ChevronDown, Download, Eye, Pencil, Check, FileText, Calendar, Settings, Archive, Trash2, Plus } from "lucide-react"
 import axios from "axios"
+import { useTranslation } from "@/hooks/useTranslation"
+import Skeleton from "react-loading-skeleton"
+import "react-loading-skeleton/dist/skeleton.css"
 
 interface DashboardStats {
   totalArticles: number
@@ -24,6 +27,7 @@ interface Article {
 }
 
 export function AiReporterContent() {
+  const { t } = useTranslation()
   const [dashboardStats, setDashboardStats] = useState<any | null>(null)
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
@@ -134,7 +138,7 @@ export function AiReporterContent() {
   }
 
   const deleteArticle = async (articleId: string) => {
-    if (!confirm('Are you sure you want to delete this article?')) return
+    if (!confirm(t("pages:commons.confirmDelete"))) return
     
     try {
       const token = localStorage.getItem('token')
@@ -156,32 +160,82 @@ export function AiReporterContent() {
     return matchesSearch
   })
 
+  // Skeleton rows for loading state
+  const skeletonRows = Array.from({ length: 5 }).map((_, index) => (
+    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <Skeleton width={40} />
+      </td>
+      <td className="px-4 py-3">
+        <Skeleton width={200} />
+      </td>
+      <td className="px-4 py-3">
+        <Skeleton width={120} />
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <Skeleton width={80} />
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <Skeleton width={70} height={24} />
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="flex items-center space-x-1">
+          <Skeleton circle width={32} height={32} />
+          <Skeleton circle width={32} height={32} />
+          <Skeleton circle width={32} height={32} />
+        </div>
+      </td>
+    </tr>
+  ))
+
   return (
     <div className="space-y-6" style={{ fontFamily: "Montserrat, sans-serif" }}>
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">AI Legal Reporter</h1>
-        <p className="text-gray-600 mt-1">Automated summarization</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("pages:report.title")}</h1>
+        <p className="text-gray-600 mt-1">{t("pages:report.subtitle")}</p>
       </div>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full text-center text-gray-500 p-8">Loading metrics...</div>
+          <>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton circle width={20} height={20} />
+              </div>
+              <Skeleton width={120} height={16} className="mb-2" />
+              <Skeleton width={60} height={32} />
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton circle width={20} height={20} />
+              </div>
+              <Skeleton width={120} height={16} className="mb-2" />
+              <Skeleton width={60} height={32} />
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton circle width={20} height={20} />
+              </div>
+              <Skeleton width={120} height={16} className="mb-2" />
+              <Skeleton width={60} height={32} />
+            </div>
+          </>
         ) : (
           <>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <FileText className="h-5 w-5 text-gray-400" />
               </div>
-              <div className="text-sm font-medium text-gray-600">Articles Written</div>
+              <div className="text-sm font-medium text-gray-600">{t("pages:report.metrics.articlesWritten")}</div>
               <div className="text-2xl font-bold text-gray-900 mt-1">{dashboardStats?.stats.totalArticles || 0}</div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Calendar className="h-5 w-5 text-gray-400" />
               </div>
-              <div className="text-sm font-medium text-gray-600">Last Active</div>
+              <div className="text-sm font-medium text-gray-600">{t("pages:report.metrics.lastActive")}</div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
                 {new Date(dashboardStats?.latestActivity).toLocaleDateString('en-US', {
                   month: 'short',
@@ -193,12 +247,11 @@ export function AiReporterContent() {
               <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Settings className="h-5 w-5 text-gray-400" />
               </div>
-              <div className="text-sm font-medium text-gray-600">Generation Mode</div>
+              <div className="text-sm font-medium text-gray-600">{t("pages:report.metrics.generationMode")}</div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {dashboardStats?.generationMode || 'Daily'}
+                {dashboardStats?.generationMode || t("pages:report.modes.daily")}
               </div>
             </div>
-          
           </>
         )}
       </div>
@@ -207,48 +260,70 @@ export function AiReporterContent() {
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search by name"
-              className="pl-10 pr-4 py-2 w-full sm:w-80 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            {loading ? (
+              <Skeleton width={320} height={36} />
+            ) : (
+              <>
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder={t("pages:commons.searchPlaceholder")}
+                  className="pl-10 pr-4 py-2 w-full sm:w-80 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </>
+            )}
           </div>
 
           <div className="flex items-center space-x-3 w-full sm:w-auto">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                aria-haspopup="true"
-                aria-expanded={isStatusDropdownOpen}
-              >
-                <span>Status</span>
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </button>
-              {isStatusDropdownOpen && (
-                <div className="absolute z-10 mt-2 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  {["All", "Published", "Draft", "Archived"].map((statusOption) => (
-                    <button
-                      key={statusOption}
-                      onClick={() => {
-                        setSelectedStatus(statusOption)
-                        setIsStatusDropdownOpen(false)
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      {statusOption}
-                    </button>
-                  ))}
+            {loading ? (
+              <>
+                <Skeleton width={100} height={36} />
+                <Skeleton width={140} height={36} />
+              </>
+            ) : (
+              <>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                    className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    aria-haspopup="true"
+                    aria-expanded={isStatusDropdownOpen}
+                  >
+                    <span>{t("pages:commons.status")}</span>
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </button>
+                  {isStatusDropdownOpen && (
+                    <div className="absolute z-10 mt-2 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      {["All", "Published", "Draft", "Archived"].map((statusOption) => (
+                        <button
+                          key={statusOption}
+                          onClick={() => {
+                            setSelectedStatus(statusOption)
+                            setIsStatusDropdownOpen(false)
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          {t(`pages:commons.statusOptions.${statusOption.toLowerCase()}`)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-     
-
+                <button
+                  type="button"
+                  onClick={generateArticle}
+                  disabled={isGenerating}
+                  className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {isGenerating ? t("pages:commons.generating") : t("pages:report.generateButton")}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -258,25 +333,21 @@ export function AiReporterContent() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tags</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.id")}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.title")}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.tags")}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.created")}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.status")}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("pages:report.table.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-500">
-                  Loading articles...
-                </td>
-              </tr>
+              skeletonRows
             ) : filteredArticles.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-gray-500">
-                  No articles found.
+                  {t("pages:commons.noData")}
                 </td>
               </tr>
             ) : (
@@ -302,18 +373,16 @@ export function AiReporterContent() {
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {article.status}
+                      {t(`pages:commons.statusOptions.${article.status.toLowerCase()}`)}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center space-x-1">
                       <button
                         type="button"
-                        onClick={() => {
-                          console.log(article._id,"generationModegenerationModegenerationModegenerationMode")
-                          window.open(`/ai-reporter/article/${article._id}`, '_blank')}}
+                        onClick={() => window.open(`/ai-reporter/article/${article._id}`, '_blank')}
                         className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                        title="View Article"
+                        title={t("pages:commons.view")}
                       >
                         <Eye className="h-4 w-4" />
                       </button>
@@ -322,7 +391,7 @@ export function AiReporterContent() {
                           type="button"
                           onClick={() => publishArticle(article._id)}
                           className="p-2 rounded-md text-green-600 hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-200"
-                          title="Publish Article"
+                          title={t("pages:commons.publish")}
                         >
                           <Check className="h-4 w-4" />
                         </button>
@@ -332,7 +401,7 @@ export function AiReporterContent() {
                           type="button"
                           onClick={() => archiveArticle(article._id)}
                           className="p-2 rounded-md text-orange-600 hover:bg-orange-50 hover:text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                          title="Archive Article"
+                          title={t("pages:commons.archive")}
                         >
                           <Archive className="h-4 w-4" />
                         </button>
@@ -341,7 +410,7 @@ export function AiReporterContent() {
                         type="button"
                         onClick={() => deleteArticle(article._id)}
                         className="p-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
-                        title="Delete Article"
+                        title={t("pages:commons.delete")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

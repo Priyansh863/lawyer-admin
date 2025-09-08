@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Search, ChevronDown, Menu } from "lucide-react"
 import Image from "next/image" // Using Next.js Image component
 import Link from "next/link"
-
 interface AiReporterHeaderProps {
   onMenuClick: () => void
 }
@@ -60,6 +59,7 @@ export function AiReporterHeader({ onMenuClick }: AiReporterHeaderProps) {
               <div className="text-right hidden sm:block">
                 <div className="text-sm font-medium text-gray-900">Anima Agr</div>
                 <div className="text-xs text-gray-500">korea XXX</div>
+                
               </div>
               <Image
                 src="/placeholder.svg?height=32&width=32"

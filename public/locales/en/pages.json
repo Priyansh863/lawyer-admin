@@ -176,6 +176,47 @@
       "client": "Client",
       "razorpay": "Razorpay"
     },
+    "report": {
+      "title": "AI Legal Reporter",
+      "subtitle": "Automated summarization",
+      "metrics": {
+        "articlesWritten": "Articles Written",
+        "lastActive": "Last Active",
+        "generationMode": "Generation Mode"
+      },
+      "modes": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "generateButton": "Generate Article",
+      "table": {
+        "id": "ID",
+        "title": "Title",
+        "tags": "Tags",
+        "created": "Created",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+  "commons": {
+    "loading": "Loading...",
+    "noData": "No data found",
+    "searchPlaceholder": "Search by name",
+    "status": "Status",
+    "statusOptions": {
+      "all": "All",
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "generating": "Generating...",
+    "confirmDelete": "Are you sure you want to delete this article?",
+    "view": "View",
+    "publish": "Publish",
+    "archive": "Archive",
+    "delete": "Delete"
+  },
     "lawyerVerification": {
       "title": "Lawyer Verification",
       "subtitle": "Review and verify lawyer applications",
@@ -209,6 +250,59 @@
       "exportCSVSuccess": "Lawyer verification data exported to CSV successfully",
       "exportJSONSuccess": "Lawyer verification data exported to JSON successfully"
     },
+    "settings": {
+      "title": "AI Reporter Settings",
+      "subtitle": "Configure your automated summarization",
+      "targetConfig": "Target Configuration",
+      "tagsToTarget": "Tags to Target",
+      "addTagPlaceholder": "Add new tag and press Enter",
+      "legalFields": "Legal Fields",
+       "legalFieldOptions": {
+        "familyLaw": "Family Law",
+        "propertyLaw": "Property Law",
+        "criminalLaw": "Criminal Law",
+        "corporateLaw": "Corporate Law",
+        "laborLaw": "Labor Law",
+        "taxLaw": "Tax Law",
+        "intellectualProperty": "Intellectual Property",
+        "immigration": "Immigration"
+      },
+      "lawyersToFollow": "Lawyers to Follow",
+      "articleFrequency": "Article Frequency",
+      "generateFrequency": "Generate Frequency",
+      "maxArticlesPerDay": "Max Articles Per Day",
+      "timeOfGeneration": "Time of Generation",
+      "archiveRules": "Archive Rules",
+      "minViewsToAutoArchive": "Min Views to Auto Archive",
+      "maxArticleAge": "Max Article Age (in days)",
+      "archiveVisibility": "Archive Visibility",
+      "visibility": {
+        "homepage": "Homepage",
+        "dashboard": "Dashboard",
+        "searchOnly": "Search only"
+      },
+      "languageSettings": "Language Settings",
+      "status": "Status",
+      "activeDescription": "AI Reporter is currently active and generating content according to your settings.",
+      "inactiveDescription": "AI Reporter is currently inactive and will not generate new content.",
+      "saveDescription": "Save your changes to update the AI Reporter settings.",
+      "modes": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "manual": "Manual"
+      }
+    },
+  "commona": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "save": "Save",
+    "saveSettings": "Save Settings",
+    "settingsSaved": "Settings saved successfully!",
+    "saveError": "Failed to save settings. Please try again.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "close": "Close menu"
+  },
     "users": {
       "title": "Users",
       "searchPlaceholder": "Search by name or email",
@@ -296,6 +390,9 @@
       "adminUser": "Admin User",
       "superAdmin": "Super Admin",
       "admin": "Admin",
+      "title": "AI Reporter",
+      "profile": "Profile",
+      
       "userAvatarAlt": "User Avatar",
       "expandSidebar": "Expand Sidebar",
       "collapseSidebar": "Collapse Sidebar",

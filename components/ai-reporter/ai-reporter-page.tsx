@@ -2,89 +2,93 @@
 
 import { useEffect, useState } from "react"
 import { Search, ChevronDown, Download, Eye, Pencil, Check, FileText, Calendar, Clock } from "lucide-react"
+import { useTranslation } from "@/hooks/useTranslation"
 
 export function AiReporterPage() {
-  const [metricsData, setMetricsData] = useState([])
-  const [reportsData, setReportsData] = useState([])
+  const { t } = useTranslation()
+  const [metricsData, setMetricsData] = useState<any[]>([])
+  const [reportsData, setReportsData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
-  const [selectedStatus, setSelectedStatus] = useState("All")
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("All")
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
 
+  // Status options for the dropdown
+  const statusOptions = ["All", "Published", "Draft"]
+
+  // Fetch data from API or use dummy data
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
       try {
         // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 700))
-
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Dummy data for metrics
         const simulatedMetrics = [
           {
-            title: "Articles Written",
+            title: t("pages:report.articlesWritten"),
             value: "482",
             icon: FileText,
           },
           {
-            title: "Last Active",
-            value: "May 29, 2025",
+            title: t("pages:report.lastActive"),
+            value: t("pages:report.may29"),
             icon: Calendar,
           },
           {
-            title: "Generation Mode",
-            value: "Daily (9 AM)",
+            title: t("pages:report.generationMode"),
+            value: t("pages:report.daily9am"),
             icon: Clock,
           },
         ]
         setMetricsData(simulatedMetrics)
 
-        // Dummy data for reports table
+        // Dummy data for reports
         const simulatedReports = [
           {
             id: "A128",
-            title: "Understanding Bail in Criminal Law",
-            tags: "Criminal, Bail",
-            created: "12/10/2022",
-            status: "Published",
+            title: t("pages:report.understandingBail"),
+            tags: t("pages:report.criminalBail"),
+            created: t("pages:report.dec10"),
+            status: t("pages:report.published"),
           },
           {
             id: "A129",
-            title: "The Role of Expert Witnesses",
-            tags: "Litigation, Evidence",
-            created: "11/25/2022",
-            status: "Draft",
+            title: t("pages:report.expertWitnesses"),
+            tags: t("pages:report.litigationEvidence"),
+            created: t("pages:report.nov25"),
+            status: t("pages:report.draft"),
           },
           {
             id: "A130",
-            title: "Intellectual Property Rights",
-            tags: "IP, Copyright",
-            created: "10/15/2022",
-            status: "Published",
+            title: t("pages:report.intellectualProperty"),
+            tags: t("pages:report.ipCopyright"),
+            created: t("pages:report.oct15"),
+            status: t("pages:report.published"),
           },
           {
             id: "A131",
-            title: "Contract Law Basics",
-            tags: "Contracts, Business",
-            created: "09/01/2022",
-            status: "Draft",
+            title: t("pages:report.contractLaw"),
+            tags: t("pages:report.contractsBusiness"),
+            created: t("pages:report.sep1"),
+            status: t("pages:report.draft"),
           },
         ]
         setReportsData(simulatedReports)
       } catch (error) {
-        console.error("Failed to fetch AI Report data:", error)
+        console.error(t("pages:report.fetchError"), error)
       } finally {
         setLoading(false)
       }
     }
+
     fetchData()
-  }, [])
+  }, [t])
 
   const filteredReports = reportsData.filter((report) => {
-    const matchesSearch =
-      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.tags.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.id.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = selectedStatus === "All" || report.status === selectedStatus
+    const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         report.tags.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = selectedStatus === "All" || report.status === t(`pages:report.${selectedStatus.toLowerCase()}`)
     return matchesSearch && matchesStatus
   })
 
@@ -92,159 +96,188 @@ export function AiReporterPage() {
     <div className="space-y-6" style={{ fontFamily: "Montserrat, sans-serif" }}>
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">AI Legal Reporter</h1>
-        <p className="text-gray-600 mt-1">Automated summarization</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("pages:report.aiLegalReporter")}</h1>
+        <p className="text-gray-600 mt-1">{t("pages:report.automatedSummarization")}</p>
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full text-center text-gray-500 p-8">Loading metrics...</div>
+          <div className="col-span-full text-center text-gray-500 p-8">{t("pages:report.loadingMetrics")}</div>
         ) : (
           metricsData.map((item, index) => {
             const Icon = item.icon
             return (
-              <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  {Icon && <Icon className="h-5 w-5 text-gray-400" />}
+              <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-full bg-blue-50">
+                    <Icon className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">{item.title}</p>
+                    <p className="text-2xl font-semibold text-gray-900">{item.value}</p>
+                  </div>
                 </div>
-                <div className="text-sm font-medium text-gray-600">{item.title}</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">{item.value}</div>
               </div>
             )
           })
         )}
       </div>
 
-      {/* Filters and Actions Container */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Reports Table */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {/* Table Header with Filters */}
+        <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
             <input
               type="text"
-              placeholder="Search by name"
-              className="pl-10 pr-4 py-2 w-full sm:w-80 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder={t("pages:report.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
+          
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <div className="relative">
               <button
                 type="button"
+                className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                aria-haspopup="true"
-                aria-expanded={isStatusDropdownOpen}
               >
-                <span>{selectedStatus}</span>
-                <ChevronDown className="h-4 w-4 ml-2" />
+                <span>{selectedStatus === "All" ? t("pages:report.all") : t(`pages:report.${selectedStatus.toLowerCase()}`)}</span>
+                <ChevronDown className="-mr-1 ml-2 h-5 w-5" />
               </button>
+              
               {isStatusDropdownOpen && (
-                <div className="absolute z-10 mt-2 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  {["All", "Published", "Draft"].map((statusOption) => (
-                    <button
-                      key={statusOption}
-                      onClick={() => {
-                        setSelectedStatus(statusOption)
-                        setIsStatusDropdownOpen(false)
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      {statusOption}
-                    </button>
-                  ))}
+                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  <div className="py-1" role="menu" aria-orientation="vertical">
+                    {statusOptions.map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setSelectedStatus(status)
+                          setIsStatusDropdownOpen(false)
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                      >
+                        {status === "All" ? t("pages:report.all") : t(`pages:report.${status.toLowerCase()}`)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-
+            
             <button
               type="button"
-              className="flex items-center border border-gray-300 px-3 py-2 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline ml-2">Export</span>
+              <Download className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
+              {t("pages:report.export")}
             </button>
           </div>
         </div>
-      </div>
-
-      {/* AI Reports Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tags</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-500">
-                  Loading AI reports...
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.id")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.title")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.tags")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.created")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.status")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t("pages:report.actions")}
+                </th>
               </tr>
-            ) : filteredReports.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-500">
-                  No AI reports found.
-                </td>
-              </tr>
-            ) : (
-              filteredReports.map((report, index) => (
-                <tr key={report.id} className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}>
-                  <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{report.id}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{report.title}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{report.tags}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{report.created}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        report.status === "Published" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {report.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center space-x-1">
-                      <button
-                        type="button"
-                        className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      {report.status === "Draft" && (
-                        <button
-                          type="button"
-                          className="p-2 rounded-md text-green-600 hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-200"
-                          title="Mark as Published"
-                        >
-                          <Check className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                    {t("pages:report.loadingReports")}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredReports.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                    {t("pages:report.noReports")}
+                  </td>
+                </tr>
+              ) : (
+                filteredReports.map((report) => (
+                  <tr key={report.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {report.id}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{report.title}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500">{report.tags}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {report.created}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        report.status === t("pages:report.published") 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {report.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          type="button"
+                          className="text-blue-600 hover:text-blue-900"
+                          title={t("pages:report.viewDetails")}
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
+                        <button
+                          type="button"
+                          className="text-gray-600 hover:text-gray-900"
+                          title={t("pages:report.edit")}
+                        >
+                          <Pencil className="h-5 w-5" />
+                        </button>
+                        {report.status === t("pages:report.draft") && (
+                          <button
+                            type="button"
+                            className="text-green-600 hover:text-green-900"
+                            title={t("pages:report.markPublished")}
+                          >
+                            <Check className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

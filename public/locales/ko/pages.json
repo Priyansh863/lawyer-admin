@@ -267,6 +267,47 @@
       "exportCSVSuccess": "사용자 데이터가 CSV로 성공적으로 내보내졌습니다",
       "exportJSONSuccess": "사용자 데이터가 JSON으로 성공적으로 내보내졌습니다"
     },
+     "report": {
+      "title": "AI 법률 리포터",
+      "subtitle": "자동 요약 생성",
+      "metrics": {
+        "articlesWritten": "작성된 기사 수",
+        "lastActive": "최근 활동",
+        "generationMode": "생성 모드"
+      },
+      "modes": {
+        "daily": "일일",
+        "weekly": "주간",
+        "monthly": "월간"
+      },
+      "generateButton": "기사 생성",
+      "table": {
+        "id": "ID",
+        "title": "제목",
+        "tags": "태그",
+        "created": "생성일",
+        "status": "상태",
+        "actions": "작업"
+      }
+    },
+  "commons": {
+    "loading": "로딩 중...",
+    "noData": "데이터가 없습니다",
+    "searchPlaceholder": "이름으로 검색",
+    "status": "상태",
+    "statusOptions": {
+      "all": "전체",
+      "published": "발행됨",
+      "draft": "초안",
+      "archived": "보관됨"
+    },
+    "generating": "생성 중...",
+    "confirmDelete": "이 기사를 삭제하시겠습니까?",
+    "view": "보기",
+    "publish": "발행",
+    "archive": "보관",
+    "delete": "삭제"
+  },
       "userDetails": {
       "title": "사용자 상세 정보",
       "personalInfo": "개인 정보",
@@ -321,6 +362,8 @@
       "adminUser": "관리자 사용자",
       "superAdmin": "슈퍼 관리자",
       "admin": "관리자",
+      "title": "AI 리포터",
+      "profile": "프로필",
       "userAvatarAlt": "사용자 아바타",
       "expandSidebar": "사이드바 확장",
       "collapseSidebar": "사이드바 접기",
@@ -333,6 +376,59 @@
       "settings": "설정",
       "logout": "로그아웃"
     },
+     "settings": {
+      "title": "AI 리포터 설정",
+      "subtitle": "자동 요약 생성을 구성하세요",
+      "targetConfig": "대상 구성",
+      "tagsToTarget": "대상 태그",
+      "addTagPlaceholder": "새 태그를 추가하고 Enter를 누르세요",
+      "legalFields": "법률 분야",
+      "legalFieldOptions": {
+        "familyLaw": "가족법",
+        "propertyLaw": "재산법",
+        "criminalLaw": "형사법",
+        "corporateLaw": "회사법",
+        "laborLaw": "노동법",
+        "taxLaw": "세법",
+        "intellectualProperty": "지적재산권",
+        "immigration": "이민법"
+      },
+      "lawyersToFollow": "팔로우할 변호사",
+      "articleFrequency": "기사 생성 빈도",
+      "generateFrequency": "생성 빈도",
+      "maxArticlesPerDay": "일일 최대 기사 수",
+      "timeOfGeneration": "생성 시간",
+      "archiveRules": "보관 규칙",
+      "minViewsToAutoArchive": "자동 보관 최소 조회수",
+      "maxArticleAge": "최대 기사 기간 (일)",
+      "archiveVisibility": "보관 가시성",
+      "visibility": {
+        "homepage": "홈페이지",
+        "dashboard": "대시보드",
+        "searchOnly": "검색 전용"
+      },
+      "languageSettings": "언어 설정",
+      "status": "상태",
+      "activeDescription": "AI 리포터가 현재 활성화되어 있으며 설정에 따라 콘텐츠를 생성하고 있습니다.",
+      "inactiveDescription": "AI 리포터가 현재 비활성화되어 있으며 새로운 콘텐츠를 생성하지 않습니다.",
+      "saveDescription": "변경 사항을 저장하여 AI 리포터 설정을 업데이트하세요.",
+      "modes": {
+        "daily": "일일",
+        "weekly": "주간",
+        "manual": "수동"
+      }
+    },
+  "commona": {
+    "loading": "로딩 중...",
+    "saving": "저장 중...",
+    "save": "저장",
+    "close": "메뉴 닫기",
+    "saveSettings": "설정 저장",
+    "settingsSaved": "설정이 성공적으로 저장되었습니다!",
+    "saveError": "설정 저장에 실패했습니다. 다시 시도해 주세요.",
+    "active": "활성화",
+    "inactive": "비활성화"
+  },
     "adminHeader": {
       "title": "관리자 패널",
       "welcome": "환영합니다",

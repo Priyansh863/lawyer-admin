@@ -3,7 +3,8 @@
 import { User, Settings, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils" // Assuming cn utility is available
+import { cn } from "@/lib/utils"
+import { useTranslation } from "@/hooks/useTranslation"
 
 interface AiReporterSidebarProps {
   isOpen: boolean
@@ -11,11 +12,12 @@ interface AiReporterSidebarProps {
 }
 
 export function AiReporterSidebar({ isOpen, onClose }: AiReporterSidebarProps) {
+  const { t } = useTranslation()
   const pathname = usePathname()
 
   const menuItems = [
-    { id: "profile", label: "Profile", icon: User, href: "/ai-reporter" }, // Main AI Reporter page
-    { id: "settings", label: "Settings", icon: Settings, href: "/ai-reporter/settings" },
+    { id: "profile", label: t("pages:sidebar.profile"), icon: User, href: "/ai-reporter" },
+    { id: "settings", label: t("pages:sidebar.settings"), icon: Settings, href: "/ai-reporter/settings" },
   ]
 
   return (
@@ -38,7 +40,7 @@ export function AiReporterSidebar({ isOpen, onClose }: AiReporterSidebarProps) {
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-full"></div>
             </div>
-            <span className="text-lg font-semibold text-gray-900">AI Reporter</span>
+            <span className="text-lg font-semibold text-gray-900">{t("pages:sidebar.title")}</span>
           </div>
 
           {/* Close button for mobile */}
@@ -46,7 +48,7 @@ export function AiReporterSidebar({ isOpen, onClose }: AiReporterSidebarProps) {
             type="button"
             className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={t("pages:commona.close")}
           >
             <X className="h-5 w-5" />
           </button>
@@ -69,7 +71,7 @@ export function AiReporterSidebar({ isOpen, onClose }: AiReporterSidebarProps) {
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:bg-white hover:text-gray-900",
                     )}
-                    onClick={onClose} // Close sidebar on mobile after selection
+                    onClick={onClose}
                   >
                     <Icon className="h-5 w-5" />
                     <span className="text-sm font-medium">{item.label}</span>
