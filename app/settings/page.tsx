@@ -206,8 +206,7 @@ export default function SettingsPage() {
             <Tabs defaultValue="profile" className="space-y-6">
               <TabsList className="grid grid-cols-3 mb-6">
                 <TabsTrigger value="profile">{t('settings.profile.tab')}</TabsTrigger>
-                <TabsTrigger value="security">{t('settings.security.tab')}</TabsTrigger>
-                <TabsTrigger value="system">{t('settings.system.tab')}</TabsTrigger>
+
               </TabsList>
 
               {/* Profile Tab */}
