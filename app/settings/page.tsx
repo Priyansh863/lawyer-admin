@@ -204,10 +204,7 @@ export default function SettingsPage() {
             </div>
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid grid-cols-3 mb-6">
-                <TabsTrigger value="profile">{t('settings.profile.tab')}</TabsTrigger>
-
-              </TabsList>
+              
 
               {/* Profile Tab */}
               <TabsContent value="profile">
