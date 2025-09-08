@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
+import { useTranslation } from "@/hooks/useTranslation"
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -23,6 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 export default function LoginForm() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -45,7 +47,7 @@ export default function LoginForm() {
       });
 
       if (!result) {
-        throw new Error("No response from server. Please try again.");
+        throw new Error(t("pages:login.noResponseError"));
       }
 
       if (result.error) {
@@ -53,8 +55,6 @@ export default function LoginForm() {
       }
 
       const userInfo = await getSession();
-
-      console.log(userInfo,"userInfouserInfouserInfouserInfo")
 
       if (userInfo?.user?.email) {
         localStorage.setItem("user", JSON.stringify(userInfo.user));
@@ -64,20 +64,19 @@ export default function LoginForm() {
         }
 
         toast({
-          title: "Login Successful",
-          description: `Welcome back, ${userInfo.user.email}!`,
+          title: t("login.successTitle"),
+          description: t("pages:login.successMessage", { email: userInfo.user.email }),
           variant: "default",
         });
 
         router.push("/dashboard");
       } else {
-        throw new Error("User data not found");
+        throw new Error(t("pages:login.userDataError"));
       }
     } catch (error) {
-      console.log(error,"errorerrorerrorerrorerror")
       toast({
-        title: "Login Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        title: t("pages:login.failureTitle"),
+        description: error instanceof Error ? error.message : t("pages:login.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -88,9 +87,9 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
-        <h1 className="text-2xl font-bold font-heading">Admin Portal</h1>
+        <h1 className="text-2xl font-bold font-heading">{t("pages:login.adminPortal")}</h1>
         <p className="text-sm text-gray-600 mt-2">
-          Welcome Joseph! This page is for admin login only. Please enter your admin credentials to access the management dashboard.
+          {t("pages:login.welcomeMessage")}
         </p>
       </CardHeader>
       <CardContent>
@@ -101,9 +100,14 @@ export default function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("pages:login.emailLabel")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Enter email" className="bg-gray-50" {...field} />
+                    <Input 
+                      type="email" 
+                      placeholder={t("pages:login.emailPlaceholder")} 
+                      className="bg-gray-50" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,22 +119,27 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("pages:login.passwordLabel")}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter password"
+                        placeholder={t("pages:login.passwordPlaceholder")}
                         className="bg-gray-50 pr-10"
                         {...field}
                       />
                       <button
                         type="button"
-                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
                         onClick={() => setShowPassword(!showPassword)}
                         tabIndex={-1}
+                        aria-label={showPassword ? t("pages:login.hidePassword") : t("pages:login.showPassword")}
                       >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                   </FormControl>
@@ -144,31 +153,23 @@ export default function LoginForm() {
               className="w-full bg-[#0f0921] hover:bg-[#0f0921]/90 text-white"
               disabled={isLoading}
             >
-              {isLoading ? "Logging In..." : "Log In"}
+              {isLoading ? t("pages:login.loggingIn") : t("pages:login.loginButton")}
             </Button>
           </form>
         </Form>
-
-        {/* Remove the sign up link section below */}
-        {/* <div className="text-center text-sm mt-4">
-          Don't have an account?{" "}
-          <Link href="/signup" className="font-medium hover:underline">
-            Sign Up
-          </Link>
-        </div> */}
       </CardContent>
       <CardFooter className="text-xs text-center text-muted-foreground flex flex-col">
-        <p>This site is protected by reCAPTCHA and the</p>
+        <p>{t("pages:login.securityNotice1")}</p>
         <p>
-          Google{" "}
+          {t("pages:login.securityNotice2")}{" "}
           <Link href="#" className="underline">
-            Privacy Policy
+            {t("pages:login.privacyPolicy")}
           </Link>{" "}
-          and{" "}
+          {t("pages:login.securityNotice3")}{" "}
           <Link href="#" className="underline">
-            Terms
+            {t("pages:login.termsOfService")}
           </Link>{" "}
-          of service apply.
+          {t("pages:login.securityNotice4")}
         </p>
       </CardFooter>
     </Card>
