@@ -64,12 +64,18 @@ export default function LoginForm() {
         }
 
         toast({
-          title: t("login.successTitle"),
-          description: t("pages:login.successMessage", { email: userInfo.user.email }),
+          title: "Login Successful",
+          description: "You have successfully logged in.",
           variant: "default",
         });
 
-        router.push("/dashboard");
+        // Redirect based on user role
+        const userRole = (userInfo.user as any)?.account_type;
+        if (userRole === 'ai_reporter') {
+          router.push("/ai-reporter");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
         throw new Error(t("pages:login.userDataError"));
       }

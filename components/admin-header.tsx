@@ -85,9 +85,7 @@ export function AdminHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">
-              {t('pages:adminHeader.title')}
-            </h1>
+           
           </div>
 
           <div className="flex items-center space-x-4">
@@ -127,10 +125,14 @@ export function AdminHeader() {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/settings')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  {t('pages:adminHeader.settings')}
-                </DropdownMenuItem>
+                {
+                  userData?.account_type !== 'ai_reporter' && (
+                    <DropdownMenuItem onClick={() => router.push('/settings')}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      {t('pages:adminHeader.settings')}
+                    </DropdownMenuItem>
+                  )
+                }
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
