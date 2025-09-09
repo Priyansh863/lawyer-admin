@@ -126,7 +126,7 @@ export function RoleBasedAdminSidebar() {
   const getUserRole = () => {
     const userRole = userData?.account_type
     if (userRole === 'ai_reporter') {
-      return 'AI Reporter'
+      return t('pages:sidebar.aiReporter')
     }
     if (userRole === 'admin') {
       return t('pages:sidebar.superAdmin')
@@ -191,6 +191,7 @@ export function RoleBasedAdminSidebar() {
         {sidebarItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
+          const translatedTitle = t(`pages:sidebar.${item.translationKey}`) || item.title
           
           return (
             <Button
@@ -202,10 +203,10 @@ export function RoleBasedAdminSidebar() {
                 isActive && "bg-gray-100 text-gray-900"
               )}
               onClick={() => router.push(item.href)}
-              title={!collapsed ? undefined : item.title}
+              title={!collapsed ? undefined : translatedTitle}
             >
               <Icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
-              {!collapsed && <span>{item.title}</span>}
+              {!collapsed && <span>{translatedTitle}</span>}
             </Button>
           )
         })}

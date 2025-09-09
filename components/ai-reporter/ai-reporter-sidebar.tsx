@@ -16,8 +16,8 @@ export function AiReporterSidebar({ isOpen, onClose }: AiReporterSidebarProps) {
   const pathname = usePathname()
 
   const menuItems = [
-    { id: "profile", label: t("pages:sidebar.profile"), icon: User, href: "/ai-reporter" },
-    { id: "settings", label: t("pages:sidebar.settings"), icon: Settings, href: "/ai-reporter/settings" },
+    { id: "profile", label: t("pages:sidebara.profile"), icon: User, href: "/ai-reporter" },
+    { id: "settings", label: t("pages:sidebara.settings"), icon: Settings, href: "/ai-reporter/settings" },
   ]
 
   return (

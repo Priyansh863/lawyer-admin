@@ -374,7 +374,10 @@
       "contentMonitoring": "콘텐츠 모니터링",
       "policies": "정책",
       "settings": "설정",
-      "logout": "로그아웃"
+      "logout": "로그아웃",
+      "aiReporter": "AI 리포터",
+      "aiReporterDashboard": "AI 리포터 대시보드",
+      "aiReporterSettings": "AI 리포터 설정"
     },
      "settings": {
       "title": "AI 리포터 설정",
@@ -418,6 +421,11 @@
         "manual": "수동"
       }
     },
+    "sidebara": {
+  "title": "AI 리포터",
+  "profile": "프로필",
+  "settings": "설정"
+},
   "commona": {
     "loading": "로딩 중...",
     "saving": "저장 중...",
