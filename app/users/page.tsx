@@ -334,9 +334,6 @@ const getRoleTranslation = (role?: string) => {
                         {t('pages:users.registeredOn')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('pages:users.status')}
-                      </th>
-                      <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Active
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -415,11 +412,6 @@ const getRoleTranslation = (role?: string) => {
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-500">
                             {new Date(user.registeredOn).toLocaleDateString()}
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge className={getStatusColor(user.status)}>
-                              {getStatusTranslation(user.status)}
-                            </Badge>
                           </td>
                           <td className="py-4 px-6">
                             <Badge className={user.is_active === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
