@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminHeader } from "@/components/admin-header";
@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Trash2, Download, Check, X } from "lucide-react";
-import { getAllUsers, verifyLawyer, rejectLawyer, exportUsers } from "@/lib/adminApi";
+import { Eye, Edit, Trash2, Download, Check, X, UserCheck, UserX, Shield, ShieldOff } from "lucide-react";
+import { getAllUsers, verifyLawyer, rejectLawyer, exportUsers, toggleUserActive, toggleUserVerified } from "@/lib/adminApi";
 import { useToast } from "@/components/ui/use-toast";
 import { exportToCSV, exportToJSON, formatDataForExport } from "@/lib/exportUtils";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -26,6 +26,8 @@ interface User {
   registeredOn: string;
   avatar: string | null;
   initials: string;
+  is_active: number;
+  is_verified: number;
 }
 
 export default function UsersPage() {
@@ -96,6 +98,46 @@ export default function UsersPage() {
       toast({
         title: t('common:error'),
         description: t('pages:users.rejectError'),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleActive = async (userId: string, currentStatus: number) => {
+    try {
+      const response = await toggleUserActive(userId, currentStatus === 1 ? 0 : 1);
+      if (response.success) {
+        toast({
+          title: t('common:success'),
+          description: currentStatus === 1 ? 'User deactivated successfully' : 'User activated successfully',
+        });
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error toggling user active status:', error);
+      toast({
+        title: t('common:error'),
+        description: 'Failed to update user status',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleVerified = async (userId: string, currentStatus: number) => {
+    try {
+      const response = await toggleUserVerified(userId, currentStatus === 1 ? 0 : 1);
+      if (response.success) {
+        toast({
+          title: t('common:success'),
+          description: currentStatus === 1 ? 'User unverified successfully' : 'User verified successfully',
+        });
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error toggling user verified status:', error);
+      toast({
+        title: t('common:error'),
+        description: 'Failed to update user verification status',
         variant: "destructive",
       });
     }
@@ -295,6 +337,12 @@ const getRoleTranslation = (role?: string) => {
                         {t('pages:users.status')}
                       </th>
                       <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Active
+                      </th>
+                      <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Verified
+                      </th>
+                      <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t('pages:users.actions')}
                       </th>
                     </tr>
@@ -323,6 +371,12 @@ const getRoleTranslation = (role?: string) => {
                             <Skeleton width={60} height={24} />
                           </td>
                           <td className="py-4 px-6">
+                            <Skeleton width={60} height={24} />
+                          </td>
+                          <td className="py-4 px-6">
+                            <Skeleton width={60} height={24} />
+                          </td>
+                          <td className="py-4 px-6">
                             <div className="flex gap-2">
                               <Skeleton circle width={32} height={32} />
                               <Skeleton circle width={32} height={32} />
@@ -333,7 +387,7 @@ const getRoleTranslation = (role?: string) => {
                       ))
                     ) : users.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-8 px-6 text-center text-gray-500">
+                        <td colSpan={8} className="py-8 px-6 text-center text-gray-500">
                           {t('pages:users.noUsers')}
                         </td>
                       </tr>
@@ -345,10 +399,10 @@ const getRoleTranslation = (role?: string) => {
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={user.avatar || undefined} />
                                 <AvatarFallback className="bg-gray-900 text-white text-sm">
-                                  {user.initials}
+                                  {user.initials || 'N/A'}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-sm text-gray-900">{user.name}</span>
+                              <span className="text-sm text-gray-900">{!!user?.name ? user.name : 'N/A'}</span>
                             </div>
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-900">
@@ -368,6 +422,16 @@ const getRoleTranslation = (role?: string) => {
                             </Badge>
                           </td>
                           <td className="py-4 px-6">
+                            <Badge className={user.is_active === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                              {user.is_active === 1 ? "Active" : "Inactive"}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-6">
+                            <Badge className={user.is_verified === 1 ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
+                              {user.is_verified === 1 ? "Verified" : "Unverified"}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-6">
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="ghost"
@@ -378,6 +442,29 @@ const getRoleTranslation = (role?: string) => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              
+                              {/* Toggle Active Status */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-8 w-8 p-0 ${user.is_active === 1 ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}
+                                title={user.is_active === 1 ? "Deactivate User" : "Activate User"}
+                                onClick={() => handleToggleActive(user.id, user.is_active)}
+                              >
+                                {user.is_active === 1 ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                              </Button>
+
+                              {/* Toggle Verified Status */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-8 w-8 p-0 ${user.is_verified === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-blue-600 hover:text-blue-700'}`}
+                                title={user.is_verified === 1 ? "Unverify User" : "Verify User"}
+                                onClick={() => handleToggleVerified(user.id, user.is_verified)}
+                              >
+                                {user.is_verified === 1 ? <ShieldOff className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                              </Button>
+
                               {user.role === 'lawyer' && user.status === 'pending' && (
                                 <>
                                   <Button

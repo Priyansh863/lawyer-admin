@@ -218,4 +218,26 @@ export const getPresignedUrl = async (filePath: string, fileFormat: string) => {
   }
 };
 
+// Toggle User Active Status
+export const toggleUserActive = async (userId: string, is_active: number) => {
+  try {
+    const response = await adminApi.patch(`/admin/users/${userId}/toggle-active`, { is_active });
+    return response.data;
+  } catch (error) {
+    console.error('Error toggling user active status:', error);
+    throw error;
+  }
+};
+
+// Toggle User Verified Status
+export const toggleUserVerified = async (userId: string, is_verified: number) => {
+  try {
+    const response = await adminApi.patch(`/admin/users/${userId}/toggle-verified`, { is_verified });
+    return response.data;
+  } catch (error) {
+    console.error('Error toggling user verified status:', error);
+    throw error;
+  }
+};
+
 export default adminApi;
